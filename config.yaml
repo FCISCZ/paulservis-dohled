@@ -1,0 +1,513 @@
+# Paulservis monitoring — inventar zarizeni
+# Tento soubor je "databaze" vsech sledovanych zarizeni.
+# Sberny skript (collect.py) ho cte a doplnuje ziva data.
+
+# === PRISTUPOVE BODY (hesla v CI secrets) ===
+sources:
+  vpn1:
+    host: "93.99.200.101"
+    port: 50022
+    user: "monitor"
+    identity: "hotelak VPN 01"
+    model: "CCR2004-16G-2S+"
+    bridge_ip: "192.168.50.254/24"
+    dhcp_pool: "192.168.50.150-192.168.50.250"
+    walker_ip: "192.168.50.48"
+
+  vpn5:
+    host: "93.99.200.105"
+    port: 50022
+    user: "monitor"
+    identity: "hotelak VPN 02"
+    model: "RB1100AHx4 Dude Ed."
+    bridge_ip: "192.168.50.254/24"
+    dhcp_pool: "192.168.50.150-192.168.50.250"
+    walker_ip: "192.168.50.48"
+
+  mk_netflix:
+    host: "93.99.172.72"
+    port: 2222
+    user: "monitor"
+    identity: "MK_netflix"
+    role: "jump host pro lokalni zarizeni"
+
+# === NVR ===
+nvr:
+  # VPN1 — ether6: NVR Paulservis, ether7: NVR FC, ether10: Walker
+  - id: nvr_paulservis
+    name: "NVR Paulservis"
+    ip: ""  # verejna IP zatim nezname (NAT na 192.168.100.241 v FC siti)
+    local_ip: "192.168.50.253"
+    local_ip2: "192.168.100.241"  # druhe rozhrani v FC ISP siti
+    vpn: vpn1
+    snmp:
+      community: "cist"
+
+  - id: nvr_fc
+    name: "NVR FC"
+    ip: "93.99.200.99"
+    local_ip: "192.168.50.50"
+    vpn: vpn1
+    snmp:
+      community: "cist"
+
+  # VPN5 — ether8: NVR Stavba, ether9: NVR Chabarovice, ether10: Walker
+  - id: nvr_stavba
+    name: "NVR Stavba"
+    ip: "93.99.200.100"
+    local_ip: "192.168.50.51"
+    vpn: vpn5
+
+  - id: nvr_chab
+    name: "NVR Chabarovice"
+    ip: "93.99.200.102"
+    local_ip: "192.168.50.52"
+    vpn: vpn5
+
+# === VPN BOXY (L2TP tunely pres VPN1/VPN5) ===
+# tunel = ppp_cam_XX → IP 192.168.50.XX
+vpn_boxes:
+  # --- VPN1 ---
+  - num: "03"
+    vpn: vpn1
+    nvr: nvr_paulservis
+    lokace: "horeni"
+    cams:
+      - ip: "192.168.50.203"
+        model: "IPC2124SR3"
+        ip_typ: dhcp
+
+  - num: "05"
+    vpn: vpn1
+    nvr: nvr_paulservis
+    lokace: "garaze MP"
+    cams:
+      - ip: "192.168.50.205"
+        model: "IPC2124SR3"
+        ip_typ: static
+      - ip: "192.168.50.215"
+        model: "IPC2322LB"
+        ip_typ: dhcp
+
+  - num: "09"
+    vpn: vpn1
+    nvr: nvr_paulservis
+    lokace: "horeni"
+    cams:
+      - ip: "192.168.50.248"
+        model: "IPC2124SR3"
+        ip_typ: static
+
+  - num: "12"
+    vpn: vpn1
+    nvr: nvr_paulservis
+    lokace: "tvorba SW sasa"
+    cams:
+      - ip: "192.168.50.212"
+        model: "IPC2322LB"
+        ip_typ: dhcp
+
+  - num: "24"
+    vpn: vpn1
+    nvr: nvr_paulservis
+    lokace: "Usti, Bina"
+    cams:
+      - ip: "192.168.50.224"
+        model: "IPC2124SR3"
+        ip_typ: dhcp
+      - ip: "192.168.50.234"
+        model: "IPC2124SR3"
+        ip_typ: dhcp
+      - ip: "192.168.50.244"
+        model: "IPC2322LB"
+        ip_typ: dhcp
+
+  - num: "84"
+    vpn: vpn1
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.50.184"
+        model: "IPC2124SR3"
+        ip_typ: static
+
+  - num: "85"
+    vpn: vpn1
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.50.185"
+        model: "IPC2124SR3"
+        ip_typ: dhcp
+
+  - num: "86"
+    vpn: vpn1
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.50.186"
+        model: "IPC2124SR3"
+        ip_typ: dhcp
+
+  - num: "87"
+    vpn: vpn1
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.50.187"
+        model: "IPC2124SR3"
+        ip_typ: static
+
+  - num: "88"
+    vpn: vpn1
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.50.188"
+        model: "IPC2322LB"
+        ip_typ: dhcp
+
+  - num: "89"
+    vpn: vpn1
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.50.189"
+        model: "IPC2124SR3"
+        ip_typ: dhcp
+
+  - num: "94"
+    vpn: vpn1
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.50.194"
+        model: "IPC2124SR3"
+        ip_typ: static
+      - ip: "192.168.50.195"
+        model: "IPC2124SR3"
+        ip_typ: dhcp
+
+  # --- VPN5 ---
+  - num: "02"
+    vpn: vpn5
+    nvr: nvr_stavba
+    lokace: ""
+    cams: []
+
+  - num: "04"
+    vpn: vpn5
+    nvr: nvr_stavba
+    lokace: ""
+    cams: []
+
+  - num: "07"
+    vpn: vpn5
+    nvr: nvr_chab
+    lokace: ""
+    cams: []
+
+  - num: "08"
+    vpn: vpn5
+    nvr: nvr_chab
+    lokace: ""
+    cams: []
+
+  - num: "24"
+    vpn: vpn5
+    nvr: nvr_stavba
+    lokace: ""
+    cams: []
+
+  - num: "25"
+    vpn: vpn5
+    nvr: nvr_stavba
+    lokace: ""
+    cams: []
+
+  - num: "28"
+    vpn: vpn5
+    nvr: nvr_stavba
+    lokace: ""
+    cams: []
+
+  - num: "86"
+    vpn: vpn5
+    nvr: nvr_chab
+    lokace: ""
+    cams: []
+
+  - num: "87"
+    vpn: vpn5
+    nvr: nvr_chab
+    lokace: ""
+    cams: []
+
+  - num: "88"
+    vpn: vpn5
+    nvr: nvr_stavba
+    lokace: ""
+    cams: []
+
+  - num: "89"
+    vpn: vpn5
+    nvr: nvr_stavba
+    lokace: ""
+    cams: []
+
+  - num: "90"
+    vpn: vpn5
+    nvr: nvr_stavba
+    lokace: ""
+    cams: []
+
+  - num: "91"
+    vpn: vpn5
+    nvr: nvr_stavba
+    lokace: ""
+    cams: []
+
+  - num: "92"
+    vpn: vpn5
+    nvr: nvr_stavba
+    lokace: ""
+    cams: []
+
+  - num: "93"
+    vpn: vpn5
+    nvr: nvr_chab
+    lokace: ""
+    cams: []
+
+  - num: "95"
+    vpn: vpn5
+    nvr: nvr_stavba
+    lokace: ""
+    cams: []
+
+  - num: "96"
+    vpn: vpn5
+    nvr: nvr_stavba
+    lokace: ""
+    cams: []
+
+  - num: "97"
+    vpn: vpn5
+    nvr: nvr_stavba
+    lokace: ""
+    cams: []
+
+  - num: "98"
+    vpn: vpn5
+    nvr: nvr_stavba
+    lokace: ""
+    cams: []
+
+# === LOKALNI ZARIZENI (pres MK_netflix jako jump host) ===
+# Typ: bridge = MK bridge + kamera, standalone = jen kamera
+local_devices:
+  # MK bridge + kamera
+  - num: "116.46"
+    type: bridge
+    nvr: nvr_paulservis
+    lokace: "Mojzir"
+    mk_ip: "192.168.116.46"
+    mk_model: "SXTsq Lite5"
+    mk_routeros: "6.47.8"
+    mk_identity: "kamera mojriz"
+    cams:
+      - ip: "192.168.117.46"
+        mac: "6C:F1:7E:8F:AE:CB"
+        model: "IPC6424SR-X25-VF"
+        ip_typ: static
+
+  - num: "62.26"
+    type: bridge
+    nvr: nvr_paulservis
+    lokace: "Opeltalova, parkoviste"
+    mk_ip: "192.168.62.26"
+    mk_model: "SXTsq Lite5"
+    mk_routeros: "6.49.7"
+    mk_identity: "opeltalova kamera parkoviste"
+    cams:
+      - ip: "192.168.63.26"
+        mac: "6C:F1:7E:B0:26:9B"
+        model: ""
+        ip_typ: static
+
+  - num: "114.46"
+    type: bridge
+    nvr: nvr_paulservis
+    lokace: "paulservis kamera"
+    mk_ip: "192.168.114.46"
+    mk_model: "SXTsq Lite5"
+    mk_routeros: "6.47.4"
+    mk_identity: "paulservis kamera"
+    cams:
+      - ip: "192.168.115.46"
+        mac: "6C:F1:7E:7C:B4:78"
+        model: ""
+        ip_typ: static
+
+  - num: "74.48"
+    type: bridge
+    nvr: nvr_paulservis
+    lokace: "AVE, parkoviste"
+    mk_ip: "192.168.74.48"
+    mk_model: "SXTsq Lite5"
+    mk_routeros: "6.49.7"
+    mk_identity: "kamera AVE parkovyste pavel"
+    cams:
+      - ip: "192.168.75.48"
+        mac: "48:EA:63:ED:C2:2E"
+        model: ""
+        ip_typ: static
+
+  - num: "62.24"
+    type: bridge
+    nvr: nvr_paulservis
+    lokace: "Seifertova"
+    mk_ip: "192.168.62.24"
+    mk_model: "SXTsq Lite5"
+    mk_routeros: "6.49.7"
+    mk_identity: "seifertova kamera pavel"
+    cams:
+      - ip: "192.168.63.24"
+        mac: "6C:F1:7E:85:F9:1C"
+        model: ""
+        ip_typ: static
+
+  - num: "14.38"
+    type: bridge
+    nvr: nvr_paulservis
+    lokace: "Kovostrot"
+    mk_ip: "192.168.14.38"
+    mk_model: "LHG HP5"
+    mk_routeros: "6.47.9"
+    mk_identity: "kamera kovostrot pavel"
+    cams:
+      - ip: "192.168.13.38"
+        mac: "6C:F1:7E:1A:78:A4"
+        model: ""
+        ip_typ: static
+
+  # Standalone kamery (bez bridge, jen ping)
+  - num: "100.45"
+    type: standalone
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.100.45"
+        ip_typ: static
+
+  - num: "100.46"
+    type: standalone
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.100.46"
+        ip_typ: static
+
+  - num: "100.47"
+    type: standalone
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.100.47"
+        ip_typ: static
+
+  - num: "108.12"
+    type: standalone
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.108.12"
+        ip_typ: static
+
+  - num: "208.249"
+    type: standalone
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.208.249"
+        ip_typ: static
+
+  - num: "230.16"
+    type: standalone
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.230.16"
+        ip_typ: static
+
+  - num: "230.20"
+    type: standalone
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.230.20"
+        ip_typ: static
+
+  - num: "230.26"
+    type: standalone
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.230.26"
+        ip_typ: static
+
+  - num: "230.28"
+    type: standalone
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.230.28"
+        ip_typ: static
+
+  - num: "230.29"
+    type: standalone
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.230.29"
+        ip_typ: static
+
+  - num: "230.43"
+    type: standalone
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.230.43"
+        ip_typ: static
+
+  - num: "230.44"
+    type: standalone
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.230.44"
+        ip_typ: static
+
+  - num: "230.45"
+    type: standalone
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.230.45"
+        ip_typ: static
+
+  - num: "230.46"
+    type: standalone
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.230.46"
+        ip_typ: static
+
+  - num: "230.55"
+    type: standalone
+    nvr: nvr_paulservis
+    lokace: ""
+    cams:
+      - ip: "192.168.230.55"
+        ip_typ: static

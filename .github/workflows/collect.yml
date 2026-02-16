@@ -1,0 +1,34 @@
+name: Sber dat
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'  # kazdych 15 minut
+  workflow_dispatch: {}      # rucni spusteni
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq sshpass snmp python3-yaml
+
+      - name: Sber dat
+        env:
+          MK_MONITOR_PASS: ${{ secrets.MK_MONITOR_PASS }}
+        run: |
+          python3 collect.py --config config.yaml --output status.json
+
+      - name: Push status.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add status.json
+          git diff --cached --quiet && echo "Zadne zmeny" && exit 0
+          git commit -m "Auto: aktualizace status.json"
+          git push
