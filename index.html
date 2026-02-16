@@ -333,6 +333,14 @@ function toggleBox(key) {
 // ============================================================
 // RENDER
 // ============================================================
+function safeRender(fn, label) {
+    try { return fn(); }
+    catch (e) {
+        console.error('Render chyba (' + label + '):', e);
+        return `<div class="box-card" style="border-color:#f59e0b44"><div style="padding:12px;color:#f59e0b;font-size:0.85em">${label} — chyba vykresleni</div></div>`;
+    }
+}
+
 function render() {
     const el = document.getElementById('content');
     let h = '';
@@ -374,7 +382,7 @@ function render() {
     if (problems.length > 0) {
         h += `<div class="problem-section">
             <div class="section-header"><span class="dot problem"></span> ${problems.length} PROBLEM${problems.length > 1 ? 'Y' : ''}</div>
-            <div class="box-grid">${problems.map(b => renderBox(b)).join('')}</div>
+            <div class="box-grid">${problems.map(b => safeRender(() => renderBox(b), 'box ' + b.num)).join('')}</div>
         </div>`;
     }
 
@@ -394,20 +402,20 @@ function render() {
         showBoxes.forEach((b, i) => {
             const gl = groupLabel(b, i > 0 ? showBoxes[i-1] : null);
             if (gl) h += `<div class="group-divider">${gl}</div>`;
-            h += renderBox(b);
+            h += safeRender(() => renderBox(b), 'box ' + b.num);
         });
         h += '</div>';
     }
 
     // NVR sekce
     h += '<div class="sec-header">NVR</div><div class="nvr-grid">';
-    DATA.nvr.forEach(nvr => { h += renderNVR(nvr); });
+    DATA.nvr.forEach(nvr => { h += safeRender(() => renderNVR(nvr), 'NVR ' + nvr.id); });
     h += '</div>';
 
     // VPN site prehled (IP mapa + DHCP + casovac)
     h += '<div class="sec-header">VPN site</div>';
     DATA.vpn_servers.forEach(vpn => {
-        h += renderVPNSite(vpn);
+        h += safeRender(() => renderVPNSite(vpn), 'VPN ' + vpn.id);
     });
 
     el.innerHTML = h;
