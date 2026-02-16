@@ -27,7 +27,7 @@ body {
 }
 .status-bar h1 { font-size: 1.1em; font-weight: 700; color: #f59e0b; letter-spacing: 2px; }
 .status-summary { display: flex; gap: 20px; font-size: 0.9em; }
-.status-summary .stat { display: flex; align-items: center; gap: 6px; }
+.status-summary .stat { display: flex; align-items: center; gap: 6px; padding: 2px 8px; }
 .status-bar .timestamp { color: #64748b; font-size: 0.8em; }
 
 /* === INDIKATORY === */
@@ -35,7 +35,6 @@ body {
 .dot.ok { background: #22c55e; box-shadow: 0 0 6px #22c55e88; }
 .dot.problem { background: #ef4444; box-shadow: 0 0 6px #ef444488; animation: pulse 2s infinite; }
 .dot.vypnuto { background: #6b7280; }
-.dot.disabled { background: #6b7280; }
 .dot-lg { width: 12px; height: 12px; }
 
 @keyframes pulse {
@@ -43,142 +42,175 @@ body {
     50% { opacity: 0.5; }
 }
 
-/* === HLAVNI LAYOUT === */
-.main { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; max-width: 1500px; margin: 0 auto; }
+/* === LAYOUT === */
+.content { max-width: 1100px; margin: 0 auto; padding: 16px; }
 
-/* === VPN SLOUPEC === */
-.vpn-column { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; }
-
-/* === VPN SERVER === */
-.vpn-header { background: #0f172a; border: 1px solid #475569; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
-.vpn-header .vpn-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-.vpn-header .vpn-name { font-size: 1.2em; font-weight: 700; color: #f59e0b; }
-.vpn-header .vpn-ip { font-family: 'Courier New', monospace; color: #94a3b8; font-size: 0.9em; }
-.vpn-header .vpn-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; font-size: 0.8em; }
-.vpn-header .vpn-meta span { background: #1e293b; color: #94a3b8; padding: 2px 8px; border-radius: 4px; border: 1px solid #334155; }
-
-/* === SEKCE === */
-.section-title { font-size: 0.75em; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b; margin: 16px 0 10px 0; padding-bottom: 6px; border-bottom: 1px solid #334155; }
-
-/* === NVR === */
-.nvr-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
-.nvr-card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
-.nvr-card .nvr-left { display: flex; align-items: center; gap: 10px; }
-.nvr-card .nvr-name { font-weight: 600; font-size: 0.9em; }
-.nvr-card .nvr-ip { font-family: 'Courier New', monospace; font-size: 0.75em; color: #64748b; }
-.nvr-card .nvr-count { font-size: 0.75em; color: #f59e0b; background: #f59e0b18; border: 1px solid #f59e0b44; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
-.nvr-card.disabled { opacity: 0.4; }
-
-/* === TAGY === */
-.tag { font-size: 0.7em; padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
-.tag-nvr { color: #f59e0b; background: #f59e0b12; border: 1px solid #f59e0b33; }
-.tag-expected { color: #94a3b8; border: 1px solid #475569; }
-.tag-expected.run { color: #22c55e; border-color: #22c55e44; }
-.tag-expected.stop { color: #6b7280; border-color: #47556944; }
+/* === SEKCE PROBLEMU === */
+.problem-section { background: #1c1017; border: 1px solid #ef444444; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+.problem-section .section-header { color: #ef4444; font-weight: 700; font-size: 0.9em; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
 
 /* === BOX === */
-.box-grid { display: flex; flex-direction: column; gap: 8px; }
-.box-card { background: #0f172a; border: 1px solid #334155; border-radius: 10px; overflow: hidden; transition: border-color 0.15s; }
+.box-grid { display: flex; flex-direction: column; gap: 6px; }
+.box-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; overflow: hidden; transition: border-color 0.15s; }
 .box-card:hover { border-color: #475569; }
 .box-card.open { border-color: #f59e0b; }
 .box-card.has-problem { border-left: 3px solid #ef4444; }
 
-/* -- Box hlavicka -- */
-.box-header { padding: 12px 14px; cursor: pointer; display: flex; align-items: center; gap: 12px; }
-.box-header:hover { background: #1a1f35; }
-.box-num { font-size: 1.4em; font-weight: 800; color: #e2e8f0; min-width: 42px; text-align: center; }
-.box-info { flex: 1; }
-.box-info .box-mk-line { display: flex; align-items: center; gap: 8px; font-size: 0.85em; flex-wrap: wrap; }
-.box-info .box-mk-label { color: #64748b; font-size: 0.8em; }
-.box-info .box-mk-ip { font-family: 'Courier New', monospace; color: #cbd5e1; }
-.box-info .box-lokace { font-size: 0.8em; color: #64748b; margin-top: 2px; }
-.box-cams-summary { display: flex; align-items: center; gap: 6px; font-size: 0.8em; color: #94a3b8; }
-.box-cams-summary .cam-dots { display: flex; gap: 3px; }
-.box-arrow { color: #64748b; font-size: 0.8em; transition: transform 0.15s; }
+.box-header { padding: 10px 14px; cursor: pointer; display: flex; align-items: center; gap: 12px; }
+.box-header:hover { background: #1a2744; }
+.box-num { font-size: 1.3em; font-weight: 800; color: #e2e8f0; min-width: 36px; text-align: center; }
+.box-info { flex: 1; min-width: 0; }
+.box-info .box-line1 { display: flex; align-items: center; gap: 8px; font-size: 0.85em; flex-wrap: wrap; }
+.box-info .box-lokace { font-size: 0.78em; color: #64748b; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.box-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.box-right .cam-dots { display: flex; gap: 3px; }
+.box-right .cam-count { font-size: 0.78em; color: #64748b; }
+.box-arrow { color: #475569; font-size: 0.7em; transition: transform 0.15s; }
 .box-card.open .box-arrow { transform: rotate(180deg); }
 
-/* -- Box detail -- */
-.box-detail { display: none; border-top: 1px solid #334155; padding: 14px; background: #0d1324; }
+.tag { font-size: 0.68em; padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+.tag-nvr { color: #f59e0b; background: #f59e0b15; border: 1px solid #f59e0b33; }
+.tag-vpn { color: #38bdf8; background: #38bdf815; border: 1px solid #38bdf833; }
+.tag-local { color: #a78bfa; background: #a78bfa15; border: 1px solid #a78bfa33; }
+.tag-problem { color: #ef4444; border: 1px solid #ef444466; }
+.tag-ip-ok { color: #22c55e; border: 1px solid #22c55e44; font-size: 0.6em; }
+.tag-ip-warn { color: #ef4444; background: #ef444412; border: 1px solid #ef444466; font-size: 0.6em; animation: pulse 2s infinite; }
+.tag-off { color: #6b7280; border: 1px solid #47556966; }
+.tag-uptime { color: #94a3b8; border: 1px solid #334155; }
+
+/* === BOX DETAIL === */
+.box-detail { display: none; border-top: 1px solid #334155; padding: 14px; background: #0f172a; }
 .box-card.open .box-detail { display: block; }
-.box-detail-section { margin-bottom: 14px; }
-.box-detail-section:last-child { margin-bottom: 0; }
-.box-detail-title { font-size: 0.7em; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 6px; }
+.detail-grid { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 0.82em; }
+.detail-grid .lbl { color: #475569; }
+.detail-grid .val { font-family: 'Courier New', monospace; color: #cbd5e1; }
+.detail-grid .val.ok { color: #22c55e; }
+.detail-grid .val.problem { color: #ef4444; }
+.detail-grid .val.off { color: #6b7280; }
+.detail-section { margin-top: 12px; }
+.detail-title { font-size: 0.7em; text-transform: uppercase; letter-spacing: 1px; color: #475569; margin-bottom: 6px; border-bottom: 1px solid #1e293b; padding-bottom: 4px; }
 
-/* MK/cam info grid */
-.info-grid { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 0.82em; }
-.info-grid .lbl { color: #64748b; }
-.info-grid .val { font-family: 'Courier New', monospace; color: #cbd5e1; }
-.info-grid .val.ok { color: #22c55e; }
-.info-grid .val.problem { color: #ef4444; }
-.info-grid .val.vypnuto { color: #6b7280; }
-
-/* Kamery v detailu */
+/* === KAMERA V DETAILU === */
 .cam-list { display: flex; flex-direction: column; gap: 6px; }
-.cam-row { display: flex; align-items: center; gap: 10px; background: #0f172a; border: 1px solid #1e293b; border-radius: 6px; padding: 8px 12px; flex-wrap: wrap; }
+.cam-row { display: flex; align-items: center; gap: 8px; background: #0f172a; border: 1px solid #1e293b; border-radius: 6px; padding: 8px 12px; flex-wrap: wrap; font-size: 0.82em; }
 .cam-row.has-problem { border-left: 3px solid #ef4444; }
-.cam-row .cam-idx { font-weight: 700; font-size: 0.85em; color: #94a3b8; min-width: 20px; }
-.cam-row .cam-ip { font-family: 'Courier New', monospace; font-size: 0.82em; color: #cbd5e1; min-width: 130px; }
-.cam-row .cam-type { font-size: 0.75em; color: #64748b; padding: 1px 6px; border: 1px solid #334155; border-radius: 3px; }
-.cam-row .cam-model { font-size: 0.8em; color: #94a3b8; }
+.cam-row .cam-ip { font-family: 'Courier New', monospace; color: #cbd5e1; min-width: 130px; }
+.cam-row .cam-model { color: #94a3b8; font-size: 0.8em; }
 
 /* === HISTORIE === */
-.historie-list { font-size: 0.8em; }
-.historie-item { display: flex; gap: 10px; padding: 4px 0; border-bottom: 1px solid #1e293b; }
-.historie-item:last-child { border-bottom: none; }
-.historie-item .h-date { color: #64748b; font-family: 'Courier New', monospace; min-width: 80px; }
-.historie-item .h-lokace { color: #cbd5e1; }
-.historie-item .h-pozn { color: #64748b; font-style: italic; }
+.historie-item { display: flex; gap: 8px; font-size: 0.8em; padding: 3px 0; }
+.historie-item .h-date { color: #475569; font-family: 'Courier New', monospace; min-width: 80px; }
+.historie-item .h-text { color: #94a3b8; }
+
+/* === SEKCE NVR === */
+.nvr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin-top: 16px; }
+.nvr-card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 16px; }
+.nvr-card .nvr-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.nvr-card .nvr-name { font-weight: 700; font-size: 0.95em; color: #e2e8f0; }
+.nvr-card .nvr-ip { font-family: 'Courier New', monospace; font-size: 0.78em; color: #64748b; }
+.nvr-card .nvr-meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.78em; margin-bottom: 8px; }
+.nvr-card .nvr-meta span { color: #94a3b8; }
+.nvr-card .nvr-meta .nm-lbl { color: #475569; }
+.nvr-streams { font-size: 0.78em; color: #64748b; margin-top: 6px; }
+.nvr-streams strong { color: #f59e0b; }
+
+/* === DISKY === */
+.disk-info { font-size: 0.8em; color: #94a3b8; margin-top: 6px; }
+.disk-slots { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+.disk-slot { width: 28px; height: 24px; border-radius: 3px; border: 1px solid #334155; display: flex; align-items: center; justify-content: center; font-size: 0.7em; font-weight: 600; color: #475569; cursor: default; position: relative; }
+.disk-slot.active { background: #22c55e22; border-color: #22c55e66; color: #22c55e; }
+.disk-slot.empty { background: #0f172a; border-color: #1e293b; color: #334155; }
+.disk-slot:hover { border-color: #f59e0b; z-index: 10; }
+.disk-popup { display: none; position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 10px 14px; min-width: 190px; color: #e2e8f0; pointer-events: none; z-index: 20; box-shadow: 0 4px 16px #00000066; }
+.disk-popup::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #475569; }
+.disk-slot:hover .disk-popup { display: block; }
+.dp-title { font-size: 0.85em; font-weight: 700; color: #f59e0b; margin-bottom: 6px; }
+.dp-row { display: flex; justify-content: space-between; gap: 12px; font-size: 0.8em; padding: 2px 0; }
+.dp-lbl { color: #64748b; }
+.dp-val { color: #cbd5e1; font-family: 'Courier New', monospace; }
+
+/* === VPN SITE PREHLED === */
+.vpn-site { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 16px; margin-top: 12px; }
+.vpn-site-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
+.vpn-site-header .vs-name { font-weight: 700; font-size: 0.95em; }
+.vpn-site-header .vs-ip { font-family: 'Courier New', monospace; color: #38bdf8; font-size: 0.82em; }
+.vpn-site-header .vs-meta { color: #64748b; font-size: 0.78em; }
+.vpn-site-header .vs-uptime { color: #94a3b8; font-size: 0.78em; margin-left: auto; }
+
+/* casovac kontroly */
+.check-bar { display: flex; align-items: center; gap: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 8px 12px; margin: 10px 0; font-size: 0.82em; }
+.check-bar .cb-label { color: #64748b; }
+.check-bar .cb-time { font-family: 'Courier New', monospace; color: #e2e8f0; font-weight: 600; }
+.check-bar .cb-next { color: #f59e0b; font-weight: 600; }
+.check-bar .cb-interval { color: #475569; font-size: 0.9em; }
+.check-bar .cb-progress { flex: 1; max-width: 120px; height: 4px; background: #334155; border-radius: 2px; overflow: hidden; }
+.check-bar .cb-progress-fill { height: 100%; background: #f59e0b; border-radius: 2px; transition: width 1s linear; }
+
+/* IP prehled */
+.ip-overview { margin: 10px 0; }
+.ip-overview .io-title { font-size: 0.75em; text-transform: uppercase; letter-spacing: 1px; color: #475569; margin-bottom: 6px; }
+.ip-group { margin-bottom: 8px; }
+.ip-group .ig-label { font-size: 0.75em; color: #64748b; margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
+.ip-group .ig-label .ig-count { color: #94a3b8; }
+.ip-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.ip-chip { font-family: 'Courier New', monospace; font-size: 0.72em; padding: 2px 7px; border-radius: 4px; border: 1px solid #334155; color: #94a3b8; }
+.ip-chip.static { border-color: #22c55e44; color: #22c55e; background: #22c55e08; }
+.ip-chip.dhcp { border-color: #38bdf844; color: #38bdf8; background: #38bdf808; }
+.ip-chip.nvr { border-color: #f59e0b44; color: #f59e0b; background: #f59e0b08; }
+.ip-chip.gw { border-color: #47556966; color: #475569; }
+
+/* DHCP pool sekce */
+.dhcp-section { margin-top: 12px; border-top: 1px solid #334155; padding-top: 10px; }
+.dhcp-pool-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.dhcp-pool-header .dp-label { font-size: 0.8em; font-weight: 700; color: #38bdf8; }
+.dhcp-pool-header .dp-range { font-family: 'Courier New', monospace; font-size: 0.78em; color: #94a3b8; }
+.dhcp-pool-header .dp-count { font-size: 0.78em; color: #f59e0b; margin-left: auto; }
+.dhcp-table { width: 100%; border-collapse: collapse; font-size: 0.78em; }
+.dhcp-table th { text-align: left; color: #475569; font-weight: 500; padding: 3px 8px; border-bottom: 1px solid #334155; }
+.dhcp-table td { padding: 4px 8px; border-bottom: 1px solid #1e293b; }
+.dhcp-table tr:last-child td { border-bottom: none; }
+.dhcp-table .ip { font-family: 'Courier New', monospace; color: #cbd5e1; }
+.dhcp-table .mac { font-family: 'Courier New', monospace; color: #64748b; font-size: 0.9em; }
+.dhcp-table .ls { font-family: 'Courier New', monospace; color: #475569; font-size: 0.9em; }
+.dhcp-table tr.newest td { color: #38bdf8; }
+.dhcp-table tr.newest .ip { color: #38bdf8; }
+.dhcp-badge { font-size: 0.65em; background: #38bdf822; color: #38bdf8; border: 1px solid #38bdf844; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
+.dhcp-empty { font-size: 0.82em; color: #475569; padding: 8px; text-align: center; }
+
+/* === SORT BAR === */
+.sort-bar { display: flex; align-items: center; gap: 8px; margin: 16px 0 8px 0; }
+.sort-label { font-size: 0.78em; color: #475569; }
+.sort-btn { font-size: 0.78em; padding: 3px 10px; border-radius: 4px; cursor: pointer; border: 1px solid #334155; background: transparent; color: #64748b; transition: all 0.15s; }
+.sort-btn:hover { border-color: #475569; color: #94a3b8; }
+.sort-btn.active { border-color: #f59e0b; color: #f59e0b; background: #f59e0b11; }
+.sort-count { font-size: 0.75em; color: #334155; margin-left: auto; }
+
+/* === GROUP DIVIDER === */
+.group-divider { font-size: 0.78em; font-weight: 600; color: #f59e0b; padding: 8px 0 2px 0; margin-top: 4px; border-top: 1px solid #334155; letter-spacing: 0.5px; }
+
+/* === SECTION HEADERS === */
+.sec-header { font-size: 0.8em; text-transform: uppercase; letter-spacing: 1.5px; color: #475569; margin: 20px 0 10px 0; padding-bottom: 4px; border-bottom: 1px solid #1e293b; }
 
 /* === TLACITKA === */
-.btn-sm {
-    font-size: 0.75em; padding: 3px 10px; border-radius: 4px; cursor: pointer;
-    border: 1px solid #475569; background: #1e293b; color: #94a3b8;
-    transition: all 0.1s;
-}
+.btn-sm { font-size: 0.72em; padding: 2px 8px; border-radius: 4px; cursor: pointer; border: 1px solid #475569; background: #1e293b; color: #94a3b8; }
 .btn-sm:hover { border-color: #f59e0b; color: #f59e0b; }
-.btn-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-
-/* Stav selector */
-.stav-sel { display: flex; gap: 4px; }
-.stav-btn {
-    font-size: 0.7em; padding: 2px 8px; border-radius: 3px; cursor: pointer;
-    border: 1px solid #334155; background: transparent; color: #64748b;
-}
-.stav-btn:hover { border-color: #94a3b8; color: #94a3b8; }
+.stav-sel { display: flex; gap: 3px; }
+.stav-btn { font-size: 0.68em; padding: 1px 6px; border-radius: 3px; cursor: pointer; border: 1px solid #334155; background: transparent; color: #475569; }
 .stav-btn.active-run { border-color: #22c55e; color: #22c55e; background: #22c55e11; }
 .stav-btn.active-stop { border-color: #6b7280; color: #94a3b8; background: #6b728011; }
 
-/* Modal (presun) */
-.modal-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: #00000088; z-index: 200;
-    display: flex; align-items: center; justify-content: center;
-}
-.modal {
-    background: #1e293b; border: 1px solid #475569; border-radius: 10px;
-    padding: 24px; min-width: 350px; max-width: 90vw;
-}
+/* === MODAL === */
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #00000088; z-index: 200; display: flex; align-items: center; justify-content: center; }
+.modal { background: #1e293b; border: 1px solid #475569; border-radius: 10px; padding: 24px; min-width: 350px; max-width: 90vw; }
 .modal h3 { color: #f59e0b; margin-bottom: 16px; font-size: 1em; }
 .modal label { display: block; color: #94a3b8; font-size: 0.85em; margin-bottom: 4px; }
-.modal input, .modal textarea {
-    width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #475569;
-    background: #0f172a; color: #e2e8f0; font-family: inherit; font-size: 0.9em;
-    margin-bottom: 12px;
-}
+.modal input, .modal textarea { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #e2e8f0; font-family: inherit; font-size: 0.9em; margin-bottom: 12px; }
 .modal textarea { min-height: 60px; resize: vertical; }
+.modal .btn-ok { padding: 6px 16px; border-radius: 4px; border: 1px solid #f59e0b; background: #f59e0b22; color: #f59e0b; cursor: pointer; font-size: 0.85em; }
+.modal .btn-cancel { padding: 6px 16px; border-radius: 4px; border: 1px solid #475569; background: transparent; color: #94a3b8; cursor: pointer; font-size: 0.85em; }
 .modal .modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
-.modal .btn-ok {
-    padding: 6px 16px; border-radius: 4px; border: 1px solid #f59e0b;
-    background: #f59e0b22; color: #f59e0b; cursor: pointer; font-size: 0.85em;
-}
-.modal .btn-ok:hover { background: #f59e0b44; }
-.modal .btn-cancel {
-    padding: 6px 16px; border-radius: 4px; border: 1px solid #475569;
-    background: transparent; color: #94a3b8; cursor: pointer; font-size: 0.85em;
-}
 
-/* === RESPONSIVE === */
-@media (max-width: 900px) { .main { grid-template-columns: 1fr; } }
+.snmp-ts { font-size: 0.65em; color: #334155; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -186,252 +218,379 @@ body {
 <div class="status-bar">
     <h1>PAULSERVIS DOHLED</h1>
     <div class="status-summary">
+        <span class="stat"><span class="dot problem"></span> <span id="cnt-problem">0</span> problem</span>
         <span class="stat"><span class="dot ok"></span> <span id="cnt-ok">0</span> OK</span>
-        <span class="stat"><span class="dot problem"></span> <span id="cnt-problem">0</span> PROBLEM</span>
         <span class="stat"><span class="dot vypnuto"></span> <span id="cnt-off">0</span> vypnuto</span>
-        <span class="stat" style="color:#94a3b8">BOXu: <span id="cnt-boxes">0</span></span>
+        <span class="stat" style="color:#64748b">Boxu: <span id="cnt-tunnels">0</span></span>
     </div>
     <span class="timestamp">Aktualizace: <span id="last-update"></span></span>
 </div>
 
-<div class="main" id="main"></div>
+<div class="content" id="content"></div>
 <div id="modal-root"></div>
 
 <script>
 // ============================================================
-// MOCKUP DATA
-// expected: "run" = ma bezet, "stop" = zamerne vypnuty
-// status:   "online" / "offline" = realny stav ze sitoveho scanu
-// Logika:   expected=run + offline = PROBLEM (cervena, pulzuje)
-//           expected=stop + offline = OK, VYPNUTO (seda)
-//           expected=run + online = OK (zelena)
+// DATA — VPN1 ZIVA DATA z 16.2.2026
 // ============================================================
 const DATA = {
-    timestamp: "2026-02-15T16:30:00",
-    vpn_servers: [
+    timestamp: "2026-02-16T15:30:00",
+
+    // NVR jako samostatne entity
+    nvr: [
         {
-            id: "vpn1", name: "VPN1", ip: "93.99.200.101",
-            model: "CCR2004-16G-2S+", routeros: "7.13",
-            identity: "hotelak VPN 01", status: "online",
-            nvr: [
-                { id: "nvr_fc", name: "NVR FC (hlavni)", ip: "93.99.200.99", local_ip: "192.168.50.99", status: "online" },
-                { id: "nvr_2", name: "NVR ???", ip: "—", local_ip: "—", status: "online" }
-            ],
-            other: [
-                { name: "Walker", typ: "Windows PC", ip: "—", local_ip: "—", status: "online", pozn: "RDP pristup k sitovym prvkum" }
-            ],
-            boxes: [
-                {
-                    num: "03", mk_ip: "192.168.50.3", mk_status: "online", mk_expected: "run",
-                    lokace: "Chabarovice, lampa u skoly", nvr: "nvr_fc",
-                    historie: [
-                        { datum: "2026-02-10", lokace: "Chabarovice, lampa u skoly", pozn: "presun z namesti" },
-                        { datum: "2026-01-15", lokace: "Chabarovice, namesti", pozn: "prvni instalace" }
-                    ],
-                    cameras: [
-                        { ip: "192.168.50.203", status: "online", expected: "run", ip_typ: "dhcp", model: "IPC2124SR3" }
-                    ]
-                },
-                {
-                    num: "05", mk_ip: "192.168.50.5", mk_status: "online", mk_expected: "run",
-                    lokace: "Chabarovice, namesti", nvr: "nvr_fc",
-                    historie: [
-                        { datum: "2026-01-20", lokace: "Chabarovice, namesti", pozn: "instalace dvou kamer" }
-                    ],
-                    cameras: [
-                        { ip: "192.168.50.105", status: "online", expected: "run", ip_typ: "static", model: "IPC2124SR3" },
-                        { ip: "192.168.50.205", status: "online", expected: "run", ip_typ: "dhcp", model: "IPC2322LB" }
-                    ]
-                },
-                {
-                    num: "09", mk_ip: "192.168.50.9", mk_status: "offline", mk_expected: "run",
-                    lokace: "Trmice, parkoviste", nvr: "nvr_fc",
-                    historie: [
-                        { datum: "2026-02-01", lokace: "Trmice, parkoviste", pozn: "presun z Prestanova" },
-                        { datum: "2025-12-10", lokace: "Prestanov, park", pozn: "prvni nasazeni" }
-                    ],
-                    cameras: [
-                        { ip: "192.168.50.209", status: "offline", expected: "run", ip_typ: "dhcp", model: "IPC2124SR3" }
-                    ]
-                },
-                {
-                    num: "12", mk_ip: "192.168.50.12", mk_status: "online", mk_expected: "run",
-                    lokace: "Prestanov, krizovatka", nvr: "nvr_fc",
-                    historie: [
-                        { datum: "2026-01-05", lokace: "Prestanov, krizovatka", pozn: "trvale umisteni" }
-                    ],
-                    cameras: [
-                        { ip: "192.168.50.112", status: "online", expected: "run", ip_typ: "static", model: "IPC2322LB" }
-                    ]
-                },
-                {
-                    num: "24", mk_ip: "192.168.50.24", mk_status: "online", mk_expected: "run",
-                    lokace: "Usti, Bina", nvr: "nvr_fc",
-                    historie: [
-                        { datum: "2026-02-14", lokace: "Usti, Bina", pozn: "presun ze Sibrky" },
-                        { datum: "2026-01-10", lokace: "Sibrka, parkoviste", pozn: "docasne umisteni" }
-                    ],
-                    cameras: [
-                        { ip: "192.168.50.124", status: "online", expected: "run", ip_typ: "dhcp", model: "IPC2124SR3" },
-                        { ip: "192.168.50.224", status: "online", expected: "run", ip_typ: "dhcp", model: "IPC2124SR3" },
-                        { ip: "192.168.50.174", status: "offline", expected: "run", ip_typ: "dhcp", model: "IPC2322LB" }
-                    ]
-                },
-                {
-                    num: "84", mk_ip: "192.168.50.84", mk_status: "online", mk_expected: "run",
-                    lokace: "Chabarovice, hasici", nvr: "nvr_fc",
-                    historie: [
-                        { datum: "2026-01-20", lokace: "Chabarovice, hasici", pozn: "instalace" }
-                    ],
-                    cameras: [
-                        { ip: "192.168.50.184", status: "online", expected: "run", ip_typ: "static", model: "IPC2124SR3" }
-                    ]
-                },
-                {
-                    num: "86", mk_ip: "192.168.50.86", mk_status: "offline", mk_expected: "stop",
-                    lokace: "sklad (odlozeno)", nvr: "nvr_fc",
-                    historie: [
-                        { datum: "2026-02-12", lokace: "sklad (odlozeno)", pozn: "stazeno z terenu, oprava" },
-                        { datum: "2026-01-15", lokace: "Prestanov, sklad", pozn: "prvni nasazeni" }
-                    ],
-                    cameras: [
-                        { ip: "—", status: "offline", expected: "stop", ip_typ: "dhcp", model: "IPC2124SR3" }
-                    ]
-                },
-                {
-                    num: "87", mk_ip: "192.168.50.87", mk_status: "online", mk_expected: "run",
-                    lokace: "Trmice, lampa 2234", nvr: "nvr_fc",
-                    historie: [
-                        { datum: "2026-02-05", lokace: "Trmice, lampa 2234", pozn: "instalace" }
-                    ],
-                    cameras: [
-                        { ip: "192.168.50.187", status: "online", expected: "run", ip_typ: "static", model: "IPC2124SR3" }
-                    ]
-                },
-                {
-                    num: "88", mk_ip: "192.168.50.88", mk_status: "online", mk_expected: "run",
-                    lokace: "Usti, most", nvr: "nvr_fc",
-                    historie: [],
-                    cameras: [
-                        { ip: "192.168.50.188", status: "online", expected: "run", ip_typ: "dhcp", model: "IPC2322LB" }
-                    ]
-                },
-                {
-                    num: "94", mk_ip: "192.168.50.94", mk_status: "online", mk_expected: "run",
-                    lokace: "Chabarovice, hlavni", nvr: "nvr_fc",
-                    historie: [],
-                    cameras: [
-                        { ip: "192.168.50.194", status: "online", expected: "run", ip_typ: "static", model: "IPC2124SR3" },
-                        { ip: "192.168.50.195", status: "online", expected: "run", ip_typ: "dhcp", model: "IPC2124SR3" }
-                    ]
-                }
-            ]
+            id: "nvr_fc", name: "NVR Paulservis", role: "hlavni",
+            ip: "93.99.200.99", local_ip: "192.168.50.253", vpn: "vpn1",
+            status: "online", streams: 29,
+            snmp: {
+                ip: "192.168.100.241", community: "cist",
+                model: "NVR516-128", fw: "B5101.39.48.250408", sn: "210235T3X3317A000001",
+                disks: [
+                    { id: 1, tb: 3.64, status: "aktivni" }, { id: 2, tb: 0, status: "prazdny" },
+                    { id: 3, tb: 3.64, status: "aktivni" }, { id: 4, tb: 3.64, status: "aktivni" },
+                    { id: 5, tb: 0, status: "prazdny" },    { id: 6, tb: 0, status: "prazdny" },
+                    { id: 7, tb: 3.64, status: "aktivni" }, { id: 8, tb: 3.64, status: "aktivni" },
+                    { id: 9, tb: 0, status: "prazdny" },    { id: 10, tb: 0, status: "prazdny" },
+                    { id: 11, tb: 3.64, status: "aktivni" },{ id: 12, tb: 3.64, status: "aktivni" },
+                    { id: 13, tb: 0, status: "prazdny" },   { id: 14, tb: 0, status: "prazdny" },
+                    { id: 15, tb: 3.64, status: "aktivni" },{ id: 16, tb: 3.64, status: "aktivni" }
+                ],
+                capacity_tb: 29.1, snmp_time: "2026-02-16T15:30:00"
+            }
         },
         {
-            id: "vpn5", name: "VPN5", ip: "93.99.200.105",
-            model: "RB1100AHx4", routeros: "7.12.1",
-            identity: "hotelak VPN 02", status: "online",
-            nvr: [
-                { id: "nvr_stavba5", name: "NVR Stavba", ip: "93.99.200.100", local_ip: "192.168.50.100", status: "online" },
-                { id: "nvr_chab5", name: "NVR Chabarovice", ip: "93.99.200.102", local_ip: "192.168.50.102", status: "online" }
-            ],
-            boxes: [
-                {
-                    num: "02", mk_ip: "192.168.50.2", mk_status: "online", mk_expected: "run",
-                    lokace: "Chabarovice, zahrada", nvr: "nvr_chab5",
-                    historie: [
-                        { datum: "2026-01-08", lokace: "Chabarovice, zahrada", pozn: "instalace" }
-                    ],
-                    cameras: [
-                        { ip: "192.168.50.202", status: "online", expected: "run", ip_typ: "dhcp", model: "IPC2124SR3" }
-                    ]
-                },
-                {
-                    num: "04", mk_ip: "192.168.50.4", mk_status: "online", mk_expected: "run",
-                    lokace: "Chabarovice, vjezd", nvr: "nvr_chab5",
-                    historie: [],
-                    cameras: [
-                        { ip: "192.168.50.104", status: "online", expected: "run", ip_typ: "static", model: "IPC2322LB" },
-                        { ip: "192.168.50.204", status: "online", expected: "run", ip_typ: "static", model: "IPC2322LB" }
-                    ]
-                },
-                {
-                    num: "07", mk_ip: "192.168.50.7", mk_status: "online", mk_expected: "run",
-                    lokace: "Prestanov, obec", nvr: "nvr_stavba5",
-                    historie: [],
-                    cameras: [
-                        { ip: "192.168.50.107", status: "online", expected: "run", ip_typ: "dhcp", model: "IPC2124SR3" }
-                    ]
-                },
-                {
-                    num: "08", mk_ip: "192.168.50.8", mk_status: "offline", mk_expected: "run",
-                    lokace: "Prestanov, hriste", nvr: "nvr_stavba5",
-                    historie: [
-                        { datum: "2026-02-01", lokace: "Prestanov, hriste", pozn: "presun od skoly" },
-                        { datum: "2025-11-20", lokace: "Prestanov, skola", pozn: "prvni nasazeni" }
-                    ],
-                    cameras: [
-                        { ip: "—", status: "offline", expected: "run", ip_typ: "dhcp", model: "IPC2124SR3" },
-                        { ip: "—", status: "offline", expected: "run", ip_typ: "dhcp", model: "IPC2124SR3" }
-                    ]
-                },
-                {
-                    num: "24", mk_ip: "192.168.50.24", mk_status: "online", mk_expected: "run",
-                    lokace: "Trmice, zastupitelstvo", nvr: "nvr_stavba5",
-                    historie: [
-                        { datum: "2026-02-10", lokace: "Trmice, zastupitelstvo", pozn: "4 kamery, velke pokryti" }
-                    ],
-                    cameras: [
-                        { ip: "192.168.50.124", status: "online", expected: "run", ip_typ: "dhcp", model: "IPC2124SR3" },
-                        { ip: "192.168.50.224", status: "online", expected: "run", ip_typ: "dhcp", model: "IPC2322LB" },
-                        { ip: "192.168.50.174", status: "online", expected: "run", ip_typ: "dhcp", model: "IPC2124SR3" },
-                        { ip: "192.168.50.175", status: "offline", expected: "stop", ip_typ: "dhcp", model: "IPC2322LB" }
-                    ]
-                },
-                {
-                    num: "25", mk_ip: "192.168.50.25", mk_status: "online", mk_expected: "run",
-                    lokace: "Trmice, obchod", nvr: "nvr_chab5",
-                    historie: [],
-                    cameras: [
-                        { ip: "192.168.50.125", status: "online", expected: "run", ip_typ: "static", model: "IPC2322LB" }
-                    ]
-                },
-                {
-                    num: "28", mk_ip: "192.168.50.28", mk_status: "online", mk_expected: "run",
-                    lokace: "Usti, kasarny", nvr: "nvr_stavba5",
-                    historie: [],
-                    cameras: [
-                        { ip: "192.168.50.128", status: "online", expected: "run", ip_typ: "static", model: "IPC2124SR3" },
-                        { ip: "192.168.50.228", status: "online", expected: "run", ip_typ: "dhcp", model: "IPC2124SR3" }
-                    ]
-                }
-            ]
+            id: "nvr_stavba", name: "NVR Stavba", role: "hlavni",
+            ip: "93.99.200.100", local_ip: "192.168.50.52", vpn: "vpn5",
+            status: "online", streams: 55
+        },
+        {
+            id: "nvr_chab", name: "NVR Chabarovice", role: "hlavni",
+            ip: "93.99.200.102", local_ip: "192.168.50.51", vpn: "vpn5",
+            status: "online", streams: 7
+        },
+        {
+            id: "nvr_ext", name: "NVR Externi", role: "vedlejsi",
+            ip: "109.202.68.102", local_ip: "—", vpn: "vpn5",
+            status: "online", streams: 20
         }
+    ],
+
+    // VPN servery (pro DHCP a technicky detail)
+    vpn_servers: [
+        {
+            id: "vpn1", name: "VPN1", ip: "93.99.200.101", port: 50022,
+            model: "CCR2004-16G-2S+", routeros: "7.13", uptime: "1w2d6h",
+            identity: "hotelak VPN 01", status: "online",
+            bridge_ip: "192.168.50.254/24",
+            last_check: "2026-02-16T15:30:00",
+            check_interval_min: 10,
+            known_ips: [
+                { ip: "192.168.50.253", typ: "nvr", popis: "NVR Paulservis" },
+                { ip: "192.168.50.254", typ: "gateway", popis: "Bridge VPN1" }
+            ],
+            dhcp: {
+                pool_start: "192.168.50.150", pool_end: "192.168.50.250",
+                leases: [
+                    { ip: "192.168.50.180", mac: "74:4D:28:3B:A3:4E", hostname: "VPN_client_1", last_seen: "12h", expires: "12h8m" },
+                    { ip: "192.168.50.189", mac: "6C:F1:7E:85:F9:16", hostname: "", last_seen: "9h19m", expires: "14h50m" }
+                ]
+            }
+        },
+        {
+            id: "vpn5", name: "VPN5", ip: "93.99.200.105", port: 50022,
+            model: "RB1100AHx4 Dude Ed.", routeros: "7.12.1", uptime: "1w2d6h15m",
+            identity: "hotelak VPN 02", status: "online",
+            bridge_ip: "192.168.50.254/24",
+            last_check: "2026-02-16T15:30:00",
+            check_interval_min: 10,
+            known_ips: [
+                { ip: "192.168.50.52", typ: "nvr", popis: "NVR Stavba" },
+                { ip: "192.168.50.51", typ: "nvr", popis: "NVR Chabarovice" },
+                { ip: "192.168.50.254", typ: "gateway", popis: "Bridge VPN5" }
+            ],
+            dhcp: {
+                pool_start: "192.168.50.150", pool_end: "192.168.50.250",
+                leases: [
+                    { ip: "192.168.50.196", mac: "6C:F1:7E:D3:2E:B0", hostname: "", last_seen: "7h13m", expires: "16h56m" },
+                    { ip: "192.168.50.185", mac: "C4:79:05:82:D2:06", hostname: "", last_seen: "4h45m", expires: "19h24m" }
+                ]
+            }
+        }
+    ],
+
+    // Boxy — ziva data z VPN1 + mockup VPN5
+    boxes: [
+        // === VPN1 — ZIVA DATA ===
+        { num: "03", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d5h47m", client_ip: "46.135.87.153", lokace: "horeni", comment: "",
+          historie: [{ datum: "2026-02-10", lokace: "horeni", pozn: "presun z centra" }],
+          cams: [{ ip: "192.168.50.203", ip_mk: "192.168.50.203", ip_snmp: "192.168.50.203", mac: "", model: "IPC2124SR3", ip_typ: "dhcp", status: "online", expected: "run", uptime: "14d2h" }] },
+        { num: "05", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h10m", client_ip: "46.135.21.40", lokace: "garaze MP", comment: "garaze MP",
+          historie: [{ datum: "2026-01-20", lokace: "garaze MP", pozn: "instalace dvou kamer" }],
+          cams: [
+            { ip: "192.168.50.205", ip_mk: "192.168.50.205", ip_snmp: "192.168.50.205", mac: "", model: "IPC2124SR3", ip_typ: "static", status: "online", expected: "run", uptime: "9d5h" },
+            { ip: "192.168.50.215", ip_mk: "192.168.50.215", ip_snmp: "192.168.50.180", mac: "", model: "IPC2322LB", ip_typ: "dhcp", status: "online", expected: "run", uptime: "2d1h" }
+          ] },
+        { num: "09", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "5d8h", client_ip: "46.135.88.50", lokace: "horeni", comment: "box 6, ip248, horeni",
+          historie: [{ datum: "2026-02-01", lokace: "horeni", pozn: "presun z Prestanova" }],
+          cams: [{ ip: "192.168.50.248", mac: "", model: "IPC2124SR3", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "12", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h10m", client_ip: "46.135.95.3", lokace: "tvorba SW sasa", comment: "tvorba SW sasa",
+          historie: [{ datum: "2026-01-05", lokace: "tvorba SW sasa", pozn: "trvale umisteni" }],
+          cams: [{ ip: "192.168.50.212", mac: "", model: "IPC2322LB", ip_typ: "dhcp", status: "online", expected: "run" }] },
+        { num: "24", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "3d20h29m", client_ip: "46.135.9.212", lokace: "—", comment: "",
+          historie: [{ datum: "2026-02-14", lokace: "Usti, Bina", pozn: "presun ze Sibrky" }, { datum: "2026-01-10", lokace: "Sibrka, parkoviste", pozn: "docasne umisteni" }],
+          cams: [
+            { ip: "192.168.50.224", mac: "", model: "IPC2124SR3", ip_typ: "dhcp", status: "online", expected: "run" },
+            { ip: "192.168.50.234", mac: "", model: "IPC2124SR3", ip_typ: "dhcp", status: "online", expected: "run" },
+            { ip: "192.168.50.244", mac: "", model: "IPC2322LB", ip_typ: "dhcp", status: "offline", expected: "run" }
+          ] },
+        { num: "84", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h10m", client_ip: "46.135.84.139", lokace: "—", comment: "",
+          historie: [], cams: [{ ip: "192.168.50.184", mac: "", model: "IPC2124SR3", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "85", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "5d4h53m", client_ip: "46.135.94.255", lokace: "—", comment: "",
+          historie: [], cams: [{ ip: "192.168.50.185", mac: "", model: "IPC2124SR3", ip_typ: "dhcp", status: "online", expected: "run" }] },
+        { num: "86", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h10m", client_ip: "46.135.81.212", lokace: "—", comment: "",
+          historie: [], cams: [{ ip: "192.168.50.186", mac: "", model: "IPC2124SR3", ip_typ: "dhcp", status: "online", expected: "run" }] },
+        { num: "87", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h10m", client_ip: "46.135.7.125", lokace: "—", comment: "",
+          historie: [], cams: [{ ip: "192.168.50.187", mac: "", model: "IPC2124SR3", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "88", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h10m", client_ip: "46.135.83.16", lokace: "—", comment: "",
+          historie: [], cams: [{ ip: "192.168.50.188", mac: "", model: "IPC2322LB", ip_typ: "dhcp", status: "online", expected: "run" }] },
+        { num: "89", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h10m", client_ip: "46.135.29.255", lokace: "—", comment: "",
+          historie: [], cams: [{ ip: "192.168.50.189", mac: "", model: "IPC2124SR3", ip_typ: "dhcp", status: "online", expected: "run" }] },
+        { num: "94", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h10m", client_ip: "46.135.20.124", lokace: "—", comment: "",
+          historie: [],
+          cams: [
+            { ip: "192.168.50.194", mac: "", model: "IPC2124SR3", ip_typ: "static", status: "online", expected: "run" },
+            { ip: "192.168.50.195", mac: "", model: "IPC2124SR3", ip_typ: "dhcp", status: "online", expected: "run" }
+          ] },
+        // === VPN5 — ZIVA DATA ===
+        { num: "02", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
+        { num: "04", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 2 },
+        { num: "07", vpn: "vpn5", nvr: "nvr_chab", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
+        { num: "08", vpn: "vpn5", nvr: "nvr_chab", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d5h51m", client_ip: "", lokace: "—", comment: "", cameras: 2 },
+        { num: "24", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 3 },
+        { num: "25", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
+          uptime: "7h40m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
+        { num: "28", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 2 },
+        { num: "86", vpn: "vpn5", nvr: "nvr_chab", mk_status: "online", mk_expected: "run",
+          uptime: "6h4m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
+        { num: "87", vpn: "vpn5", nvr: "nvr_chab", mk_status: "online", mk_expected: "run",
+          uptime: "4d3h35m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
+        { num: "88", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
+        { num: "89", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d5h50m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
+        { num: "90", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
+        { num: "91", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
+        { num: "92", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
+        { num: "93", vpn: "vpn5", nvr: "nvr_chab", mk_status: "online", mk_expected: "run",
+          uptime: "4d23h13m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
+        { num: "95", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
+        { num: "96", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
+          uptime: "4d23h40m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
+        { num: "97", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
+        { num: "98", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
+          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
+        // === LOKALNI KAMERY ===
+        { num: "mojriz", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "32w5d", lokace: "Mojzir",
+          mk_ip: "192.168.116.46", mk_model: "SXTsq Lite5", mk_routeros: "6.47.8",
+          mk_mac: "C4:AD:34:8E:32:76", mk_identity: "kamera mojriz",
+          comment: "Wi-Fi bridge, kamera pres ISP sit do NVR",
+          historie: [{ datum: "2026-01-15", lokace: "Mojzir", pozn: "instalace" }],
+          cams: [{ ip: "192.168.117.46", ip_mk: "192.168.117.46", ip_snmp: "192.168.117.46", mac: "6C:F1:7E:8F:AE:CB", model: "IPC6424SR-X25-VF", ip_typ: "static", status: "online", expected: "run", uptime: "227d10h" }] },
+        // === LOKALNI — MK BRIDGE + KAMERA (zmapovano 16.2.2026) ===
+        { num: "opeltalova", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "25w4d", lokace: "Opeltalova, parkoviste",
+          mk_ip: "192.168.62.26", mk_model: "SXTsq Lite5", mk_routeros: "6.49.7",
+          mk_identity: "opeltalova kamera parkoviste",
+          comment: "", historie: [],
+          cams: [{ ip: "192.168.63.26", mac: "6C:F1:7E:B0:26:9B", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "paulservis", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "37w3d", lokace: "—",
+          mk_ip: "192.168.114.46", mk_model: "SXTsq Lite5", mk_routeros: "6.47.4",
+          mk_identity: "paulservis kamera",
+          comment: "", historie: [],
+          cams: [{ ip: "192.168.115.46", mac: "6C:F1:7E:7C:B4:78", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "AVE", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "50w", lokace: "AVE, parkoviste",
+          mk_ip: "192.168.74.48", mk_model: "SXTsq Lite5", mk_routeros: "6.49.7",
+          mk_identity: "kamera AVE parkovyste pavel",
+          comment: "", historie: [],
+          cams: [{ ip: "192.168.75.48", mac: "48:EA:63:ED:C2:2E", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "seifertova", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "32w2d", lokace: "Seifertova",
+          mk_ip: "192.168.62.24", mk_model: "SXTsq Lite5", mk_routeros: "6.49.7",
+          mk_identity: "seifertova kamera pavel",
+          comment: "", historie: [],
+          cams: [{ ip: "192.168.63.24", mac: "6C:F1:7E:85:F9:1C", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "kovostrot", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          uptime: "3d12h", lokace: "Kovostrot",
+          mk_ip: "192.168.14.38", mk_model: "LHG HP5", mk_routeros: "6.47.9",
+          mk_identity: "kamera kovostrot pavel",
+          comment: "", historie: [],
+          cams: [{ ip: "192.168.13.38", mac: "6C:F1:7E:1A:78:A4", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "136.92", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "offline", mk_expected: "run",
+          uptime: "—", lokace: "—",
+          mk_ip: "192.168.136.92",
+          comment: "MK bridge — NEREAGUJE na ping", historie: [],
+          cams: [] },
+        // === LOKALNI — STANDALONE KAMERY (bez bridge MK, zmapovano 16.2.2026) ===
+        { num: "100.45", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          lokace: "—", comment: "", historie: [],
+          cams: [{ ip: "192.168.100.45", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "100.46", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          lokace: "—", comment: "", historie: [],
+          cams: [{ ip: "192.168.100.46", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "100.47", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          lokace: "—", comment: "", historie: [],
+          cams: [{ ip: "192.168.100.47", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "108.12", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          lokace: "—", comment: "", historie: [],
+          cams: [{ ip: "192.168.108.12", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "208.249", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          lokace: "—", comment: "", historie: [],
+          cams: [{ ip: "192.168.208.249", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "230.16", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          lokace: "—", comment: "", historie: [],
+          cams: [{ ip: "192.168.230.16", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "230.20", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          lokace: "—", comment: "", historie: [],
+          cams: [{ ip: "192.168.230.20", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "230.26", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          lokace: "—", comment: "", historie: [],
+          cams: [{ ip: "192.168.230.26", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "230.28", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          lokace: "—", comment: "", historie: [],
+          cams: [{ ip: "192.168.230.28", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "230.29", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          lokace: "—", comment: "", historie: [],
+          cams: [{ ip: "192.168.230.29", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "230.43", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          lokace: "—", comment: "", historie: [],
+          cams: [{ ip: "192.168.230.43", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "230.44", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          lokace: "—", comment: "", historie: [],
+          cams: [{ ip: "192.168.230.44", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "230.45", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          lokace: "—", comment: "", historie: [],
+          cams: [{ ip: "192.168.230.45", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "230.46", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          lokace: "—", comment: "", historie: [],
+          cams: [{ ip: "192.168.230.46", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
+        { num: "230.55", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
+          lokace: "—", comment: "", historie: [],
+          cams: [{ ip: "192.168.230.55", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] }
     ]
 };
 
 // ============================================================
-// LOGIKA STAVU
+// LOGIKA
 // ============================================================
-// expected + status → vizualni stav
 function vizStav(expected, status) {
-    if (expected === 'stop') return 'vypnuto';       // zamerne off → seda
-    if (status === 'online')  return 'ok';            // bezi → zelena
-    return 'problem';                                  // ma bezet ale nebezi → cervena
+    if (expected === 'stop') return 'vypnuto';
+    if (status === 'online') return 'ok';
+    return 'problem';
+}
+function vizLabel(v) { return v === 'ok' ? 'OK' : v === 'problem' ? 'VYPADEK' : 'VYPNUTO'; }
+
+// Ma box JAKYKOLIV problem? (MK, kamera offline, IP neshoda)
+function boxHasProblem(box) {
+    if (vizStav(box.mk_expected, box.mk_status) === 'problem') return true;
+    const cams = box.cams || [];
+    for (const c of cams) {
+        if (vizStav(c.expected || 'run', c.status) === 'problem') return true;
+        if (c.ip_mk && c.ip_snmp && c.ip_mk !== c.ip_snmp) return true;
+    }
+    return false;
+}
+function boxHasIpWarn(box) {
+    return (box.cams || []).some(c => c.ip_mk && c.ip_snmp && c.ip_mk !== c.ip_snmp);
+}
+function nvrName(id) { const n = DATA.nvr.find(x => x.id === id); return n ? n.name : '?'; }
+function vpnName(id) { const v = DATA.vpn_servers.find(x => x.id === id); return v ? v.name : '?'; }
+
+function boxSortNum(box) {
+    const n = parseInt(box.num);
+    if (!isNaN(n)) return n;
+    const parts = box.num.split('.');
+    if (parts.length === 2 && !isNaN(parseInt(parts[0]))) return 10000 + parseInt(parts[0]) * 256 + parseInt(parts[1]);
+    return 20000;
 }
 
-function vizLabel(expected, status) {
-    const v = vizStav(expected, status);
-    if (v === 'ok') return 'OK';
-    if (v === 'problem') return 'VYPADEK';
-    return 'VYPNUTO';
+function boxConnLabel(box) {
+    if (box.typ === 'lokalni') return 'Lokalni';
+    return vpnName(box.vpn);
+}
+
+function sortBoxes(boxes) {
+    const arr = [...boxes];
+    if (activeSort === 'ip') {
+        arr.sort((a, b) => boxSortNum(a) - boxSortNum(b));
+    } else if (activeSort === 'nvr') {
+        arr.sort((a, b) => {
+            const na = nvrName(a.nvr), nb = nvrName(b.nvr);
+            if (na !== nb) return na.localeCompare(nb);
+            return boxSortNum(a) - boxSortNum(b);
+        });
+    } else if (activeSort === 'vpn') {
+        arr.sort((a, b) => {
+            const ca = boxConnLabel(a), cb = boxConnLabel(b);
+            if (ca !== cb) return ca.localeCompare(cb);
+            return boxSortNum(a) - boxSortNum(b);
+        });
+    } else if (activeSort === 'typ') {
+        arr.sort((a, b) => {
+            const ta = a.typ === 'lokalni' ? 1 : 0;
+            const tb = b.typ === 'lokalni' ? 1 : 0;
+            if (ta !== tb) return ta - tb;
+            return boxSortNum(a) - boxSortNum(b);
+        });
+    }
+    return arr;
+}
+
+// Rozdelovac pro skupinove razeni
+function groupLabel(box, prev) {
+    if (activeSort === 'nvr') {
+        const cur = nvrName(box.nvr);
+        if (!prev || nvrName(prev.nvr) !== cur) return cur;
+    } else if (activeSort === 'vpn') {
+        const cur = boxConnLabel(box);
+        if (!prev || boxConnLabel(prev) !== cur) return cur;
+    } else if (activeSort === 'typ') {
+        const cur = box.typ === 'lokalni' ? 'Lokalni kamery' : 'VPN boxy';
+        if (!prev || (prev.typ === 'lokalni') !== (box.typ === 'lokalni')) return cur;
+    }
+    return null;
 }
 
 // ============================================================
 // STATE
 // ============================================================
 const openBoxes = new Set();
-let modalData = null; // {vpnId, boxNum, type:'lokace'|'expected_mk'|'expected_cam'}
+let activeSort = 'ip'; // 'ip', 'nvr', 'vpn', 'typ'
 
 function toggleBox(key) {
     if (openBoxes.has(key)) openBoxes.delete(key); else openBoxes.add(key);
@@ -442,206 +601,408 @@ function toggleBox(key) {
 // RENDER
 // ============================================================
 function render() {
-    const main = document.getElementById('main');
-    main.innerHTML = '';
+    const el = document.getElementById('content');
+    let h = '';
 
-    let cntOk = 0, cntProblem = 0, cntOff = 0, cntBoxes = 0;
-
-    DATA.vpn_servers.forEach(vpn => {
-        vpn.boxes.forEach(box => {
-            cntBoxes++;
-            const ms = vizStav(box.mk_expected, box.mk_status);
-            if (ms === 'ok') cntOk++; else if (ms === 'problem') cntProblem++; else cntOff++;
-            box.cameras.forEach(c => {
-                const cs = vizStav(c.expected, c.status);
-                if (cs === 'ok') cntOk++; else if (cs === 'problem') cntProblem++; else cntOff++;
-            });
-        });
-
-        const col = document.createElement('div');
-        col.className = 'vpn-column';
-        col.innerHTML = renderVPN(vpn);
-        main.appendChild(col);
+    // Spocitej stavy
+    let cntProblem = 0, cntOk = 0, cntOff = 0;
+    DATA.boxes.forEach(b => {
+        if (boxHasProblem(b)) cntProblem++;
+        else if (vizStav(b.mk_expected, b.mk_status) === 'vypnuto') cntOff++;
+        else cntOk++;
     });
-
     document.getElementById('cnt-ok').textContent = cntOk;
     document.getElementById('cnt-problem').textContent = cntProblem;
     document.getElementById('cnt-off').textContent = cntOff;
-    document.getElementById('cnt-boxes').textContent = cntBoxes;
+    document.getElementById('cnt-tunnels').textContent = DATA.boxes.length;
     document.getElementById('last-update').textContent = fmtTime(DATA.timestamp);
 
-    // Events
-    document.querySelectorAll('.box-header').forEach(el =>
-        el.addEventListener('click', () => toggleBox(el.dataset.key))
-    );
-    document.querySelectorAll('[data-action]').forEach(el =>
-        el.addEventListener('click', e => { e.stopPropagation(); handleAction(el); })
-    );
+    // Problemy nahore
+    const problems = DATA.boxes.filter(b => boxHasProblem(b));
+    const rest = DATA.boxes.filter(b => !boxHasProblem(b));
 
-    renderModal();
-}
-
-function renderVPN(vpn) {
-    let h = '';
-
-    // VPN server
-    h += `<div class="vpn-header">
-        <div class="vpn-top">
-            <span class="dot dot-lg ok"></span>
-            <span class="vpn-name">${vpn.name}</span>
-            <span class="vpn-ip">${vpn.ip}:50022</span>
-        </div>
-        <div style="font-size:0.82em;color:#94a3b8">${vpn.identity}</div>
-        <div class="vpn-meta">
-            <span>${vpn.model}</span><span>RouterOS ${vpn.routeros}</span>
-            <span>${vpn.boxes.length} boxu</span>
-            <span>${vpn.boxes.reduce((s,b) => s + b.cameras.length, 0)} kamer</span>
-        </div>
-    </div>`;
-
-    // NVR
-    h += '<div class="section-title">NVR</div><div class="nvr-list">';
-    vpn.nvr.forEach(nvr => {
-        const bc = vpn.boxes.filter(b => b.nvr === nvr.id).length;
-        const cc = vpn.boxes.filter(b => b.nvr === nvr.id).reduce((s,b) => s + b.cameras.length, 0);
-        h += `<div class="nvr-card ${nvr.status==='disabled'?'disabled':''}">
-            <div class="nvr-left"><span class="dot ${nvr.status==='online'?'ok':'disabled'}"></span>
-                <div><div class="nvr-name">${nvr.name}</div>
-                <div class="nvr-ip">${nvr.ip} / ${nvr.local_ip}</div></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px">
-                ${bc > 0 ? `<span class="nvr-count">${bc} boxu / ${cc} kam</span>` : ''}
-                <span style="font-size:0.7em;color:#64748b;text-transform:uppercase">${nvr.status}</span>
-            </div>
+    if (problems.length > 0) {
+        h += `<div class="problem-section">
+            <div class="section-header"><span class="dot problem"></span> ${problems.length} PROBLEM${problems.length > 1 ? 'Y' : ''}</div>
+            <div class="box-grid">${problems.map(b => renderBox(b)).join('')}</div>
         </div>`;
-    });
-    h += '</div>';
+    }
 
-    // Ostatni zarizeni (Walker apod.)
-    if (vpn.other && vpn.other.length > 0) {
-        h += '<div class="section-title">Ostatni zarizeni</div><div class="nvr-list">';
-        vpn.other.forEach(dev => {
-            h += `<div class="nvr-card">
-                <div class="nvr-left"><span class="dot ${dev.status==='online'?'ok':'disabled'}"></span>
-                    <div><div class="nvr-name">${dev.name} <span style="font-weight:400;font-size:0.8em;color:#64748b">(${dev.typ})</span></div>
-                    <div class="nvr-ip">${dev.ip} / ${dev.local_ip}</div></div>
-                </div>
-                <span style="font-size:0.7em;color:#64748b">${dev.pozn || ''}</span>
-            </div>`;
+    // Vsechny boxy (vcetne problemu)
+    const showBoxes = sortBoxes(DATA.boxes);
+    if (showBoxes.length > 0) {
+        // Sort bar
+        h += `<div class="sort-bar">
+            <span class="sort-label">Radit:</span>
+            <button class="sort-btn ${activeSort==='ip'?'active':''}" data-sort="ip">podle IP</button>
+            <button class="sort-btn ${activeSort==='nvr'?'active':''}" data-sort="nvr">podle NVR</button>
+            <button class="sort-btn ${activeSort==='vpn'?'active':''}" data-sort="vpn">podle pripojeni</button>
+            <button class="sort-btn ${activeSort==='typ'?'active':''}" data-sort="typ">VPN / lokalni</button>
+            <span class="sort-count">${showBoxes.length} boxu</span>
+        </div>`;
+        h += '<div class="box-grid">';
+        showBoxes.forEach((b, i) => {
+            const gl = groupLabel(b, i > 0 ? showBoxes[i-1] : null);
+            if (gl) h += `<div class="group-divider">${gl}</div>`;
+            h += renderBox(b);
         });
         h += '</div>';
     }
 
-    // Boxy
-    h += `<div class="section-title">MK Boxy (${vpn.boxes.length})</div><div class="box-grid">`;
-    vpn.boxes.forEach(box => {
-        const key = vpn.id + '_' + box.num;
-        const isOpen = openBoxes.has(key);
-        const mkViz = vizStav(box.mk_expected, box.mk_status);
-        const hasProblem = mkViz === 'problem' || box.cameras.some(c => vizStav(c.expected, c.status) === 'problem');
-        const nvrObj = vpn.nvr.find(n => n.id === box.nvr);
-        const nvrName = nvrObj ? nvrObj.name : '?';
+    // NVR sekce
+    h += '<div class="sec-header">NVR</div><div class="nvr-grid">';
+    DATA.nvr.forEach(nvr => { h += renderNVR(nvr); });
+    h += '</div>';
 
-        h += `<div class="box-card ${isOpen?'open':''} ${hasProblem?'has-problem':''}">`;
+    // VPN site prehled (IP mapa + DHCP + casovac)
+    h += '<div class="sec-header">VPN site</div>';
+    DATA.vpn_servers.forEach(vpn => {
+        h += renderVPNSite(vpn);
+    });
 
-        // Header
-        h += `<div class="box-header" data-key="${key}">
-            <span class="dot dot-lg ${mkViz}"></span>
-            <span class="box-num">${box.num}</span>
-            <div class="box-info">
-                <div class="box-mk-line">
-                    <span class="box-mk-label">MK</span>
-                    <span class="box-mk-ip">${box.mk_ip}</span>
-                    <span class="tag tag-nvr">${nvrName}</span>
-                    ${box.mk_expected==='stop' ? '<span class="tag tag-expected stop">VYPNUTO</span>' : ''}
-                    ${hasProblem ? '<span class="tag tag-expected" style="color:#ef4444;border-color:#ef444466">VYPADEK</span>' : ''}
-                </div>
-                <div class="box-lokace">${box.lokace}</div>
+    el.innerHTML = h;
+
+    // Events
+    el.querySelectorAll('.box-header').forEach(x =>
+        x.addEventListener('click', () => toggleBox(x.dataset.key))
+    );
+    el.querySelectorAll('[data-action]').forEach(x =>
+        x.addEventListener('click', e => { e.stopPropagation(); handleAction(x); })
+    );
+    el.querySelectorAll('.sort-btn').forEach(x =>
+        x.addEventListener('click', () => { activeSort = x.dataset.sort; render(); })
+    );
+
+
+    renderModal();
+}
+
+function boxKey(box) {
+    return (box.typ === 'lokalni' ? 'lok' : box.vpn) + '_' + box.num;
+}
+
+function boxIp(box) {
+    if (box.typ === 'lokalni') {
+        if (box.mk_ip) return box.mk_ip;
+        if (box.cams && box.cams[0]) return box.cams[0].ip;
+        return '?';
+    }
+    return '192.168.50.' + box.num;
+}
+
+function renderBox(box) {
+    const key = boxKey(box);
+    const isOpen = openBoxes.has(key);
+    const v = vizStav(box.mk_expected, box.mk_status);
+    const hasProblem = boxHasProblem(box);
+    const hasIpWarn = boxHasIpWarn(box);
+    const isLocal = box.typ === 'lokalni';
+    const cams = box.cams || [];
+
+    let h = `<div class="box-card ${isOpen?'open':''} ${hasProblem?'has-problem':''}">`;
+
+    // Header
+    h += `<div class="box-header" data-key="${key}">
+        <span class="dot dot-lg ${v}"></span>
+        <span class="box-num">${box.num}</span>
+        <div class="box-info">
+            <div class="box-line1">
+                <span style="font-family:'Courier New',monospace;color:#cbd5e1;font-size:0.9em">${boxIp(box)}</span>
+                <span class="tag tag-nvr">${nvrName(box.nvr)}</span>
+                ${isLocal
+                    ? '<span class="tag tag-local">LOKALNI</span>'
+                    : `<span class="tag tag-vpn">${vpnName(box.vpn)}</span>`}
+                ${box.uptime && box.uptime !== '—' ? `<span class="tag tag-uptime">${box.uptime}</span>` : ''}
+                ${v === 'problem' ? '<span class="tag tag-problem">VYPADEK</span>' : ''}
+                ${v === 'vypnuto' ? '<span class="tag tag-off">VYPNUTO</span>' : ''}
+                ${hasIpWarn ? '<span class="tag tag-ip-warn">IP</span>' : ''}
             </div>
-            <div class="box-cams-summary">
-                <div class="cam-dots">${box.cameras.map(c => `<span class="dot ${vizStav(c.expected, c.status)}"></span>`).join('')}</div>
-                <span>${box.cameras.length} kam</span>
-            </div>
+            <div class="box-lokace">${box.lokace || box.comment || '—'}</div>
+        </div>
+        <div class="box-right">
+            <div class="cam-dots">${cams.map(c => {
+                const cs = vizStav(c.expected||'run', c.status);
+                const ipBad = c.ip_mk && c.ip_snmp && c.ip_mk !== c.ip_snmp;
+                return `<span class="dot ${ipBad?'problem':cs}"></span>`;
+            }).join('')}</div>
+            <span class="cam-count">${cams.length} kam</span>
             <span class="box-arrow">&#9660;</span>
+        </div>
+    </div>`;
+
+    // Detail
+    h += '<div class="box-detail">';
+
+    // --- MikroTik info ---
+    h += `<div class="detail-section">
+        <div class="detail-title">${isLocal ? (box.mk_model ? 'MK Bridge' : 'Pripojeni') : 'MikroTik'}</div>
+        <div class="detail-grid">
+            <span class="lbl">Stav</span><span class="val ${v}">${vizLabel(v)}</span>`;
+    if (isLocal) {
+        h += `<span class="lbl">Typ</span><span class="val" style="color:#a78bfa;font-family:inherit">${box.mk_model ? 'Lokalni (Wi-Fi bridge)' : 'Standalone kamera'}</span>`;
+        if (box.mk_ip) h += `<span class="lbl">Bridge IP</span><span class="val">${box.mk_ip}</span>`;
+        if (box.mk_model) h += `<span class="lbl">Model</span><span class="val" style="font-family:inherit">${box.mk_model} v${box.mk_routeros || '?'}</span>`;
+        if (box.mk_identity) h += `<span class="lbl">Identity</span><span class="val" style="font-family:inherit">${box.mk_identity}</span>`;
+    } else {
+        h += `<span class="lbl">IP</span><span class="val">192.168.50.${box.num}</span>`;
+        h += `<span class="lbl">L2TP</span><span class="val">ppp_cam_${box.num}</span>`;
+        h += `<span class="lbl">VPN</span><span class="val">${vpnName(box.vpn)} (${DATA.vpn_servers.find(x=>x.id===box.vpn)?.ip || '?'})</span>`;
+        if (box.client_ip && box.client_ip !== '—') h += `<span class="lbl">Verejna IP</span><span class="val">${box.client_ip}</span>`;
+    }
+    h += `<span class="lbl">NVR</span><span class="val" style="font-family:inherit;color:#f59e0b">${nvrName(box.nvr)}</span>`;
+    if (box.uptime && box.uptime !== '—') h += `<span class="lbl">Uptime</span><span class="val">${box.uptime}</span>`;
+    h += `<span class="lbl">Ma bezet</span>
+        <span class="val"><span class="stav-sel">
+            <button class="stav-btn ${box.mk_expected==='run'?'active-run':''}" data-action="mk-expected" data-box="${key}" data-val="run">ANO</button>
+            <button class="stav-btn ${box.mk_expected==='stop'?'active-stop':''}" data-action="mk-expected" data-box="${key}" data-val="stop">NE</button>
+        </span></span>`;
+    h += '</div></div>';
+
+    // --- Kamery ---
+    h += `<div class="detail-section">
+        <div class="detail-title">Kamery (${cams.length})</div>
+        <div class="cam-list">`;
+    cams.forEach((cam, i) => {
+        const cv = vizStav(cam.expected || 'run', cam.status);
+        const ipMatch = cam.ip_mk && cam.ip_snmp ? cam.ip_mk === cam.ip_snmp : null;
+        h += `<div class="cam-row ${cv==='problem'||ipMatch===false?'has-problem':''}">
+            <span class="dot ${cv}"></span>
+            <span class="cam-idx" style="font-weight:700;font-size:0.85em;color:#94a3b8;min-width:20px">${i+1}.</span>
+            <span class="cam-ip">${cam.ip || '?'}</span>
+            <button class="btn-sm" style="padding:1px 5px;font-size:0.65em" data-action="cam-ip" data-box="${key}" data-cam="${i}">edit</button>
+            <span class="tag ${cam.ip_typ==='dhcp'?'tag-vpn':'tag-local'}" style="font-size:0.65em">${cam.ip_typ || '?'}</span>
+            <span class="cam-model">${cam.model || '—'}</span>
+            ${cam.uptime ? `<span class="tag tag-uptime" style="font-size:0.65em">${cam.uptime}</span>` : ''}
+            ${ipMatch === true ? '<span class="tag tag-ip-ok">IP OK</span>' : ''}
+            ${ipMatch === false ? `<span class="tag tag-ip-warn" title="MK: ${cam.ip_mk} / SNMP: ${cam.ip_snmp}">IP NESHODA</span>` : ''}
+            ${cam.mac ? `<span class="cam-model" style="font-family:'Courier New',monospace;font-size:0.72em;color:#475569">${cam.mac}</span>` : ''}
+            <span style="margin-left:auto;font-size:0.75em;color:${cv==='problem'?'#ef4444':cv==='ok'?'#22c55e':'#6b7280'}">${vizLabel(cv)}</span>
+            <span class="stav-sel">
+                <button class="stav-btn ${(cam.expected||'run')==='run'?'active-run':''}" data-action="cam-expected" data-box="${key}" data-cam="${i}" data-val="run">run</button>
+                <button class="stav-btn ${cam.expected==='stop'?'active-stop':''}" data-action="cam-expected" data-box="${key}" data-cam="${i}" data-val="stop">stop</button>
+            </span>
         </div>`;
+        if (ipMatch === false) {
+            h += `<div style="padding:2px 12px 6px 40px;font-size:0.75em;color:#ef4444">
+                MK vidi: <span style="font-family:'Courier New',monospace">${cam.ip_mk}</span> &nbsp;|&nbsp;
+                Kamera tvrdi: <span style="font-family:'Courier New',monospace">${cam.ip_snmp}</span>
+            </div>`;
+        }
+    });
+    if (cams.length === 0) h += '<div style="font-size:0.8em;color:#475569;padding:4px">Zadna data o kamerach</div>';
+    h += '</div></div>';
 
-        // Detail
-        h += '<div class="box-detail">';
-
-        // MK info
-        h += `<div class="box-detail-section">
-            <div class="box-detail-title">MikroTik</div>
-            <div class="info-grid">
-                <span class="lbl">Stav</span><span class="val ${mkViz}">${vizLabel(box.mk_expected, box.mk_status)}</span>
-                <span class="lbl">IP</span><span class="val">${box.mk_ip}</span>
-                <span class="lbl">L2TP</span><span class="val">ppp_cam_${box.num}</span>
-                <span class="lbl">VPN</span><span class="val">${vpn.name} (${vpn.ip})</span>
-                <span class="lbl">Nahrává na</span><span class="val" style="font-family:inherit;color:#f59e0b">${nvrName}</span>
-                <span class="lbl">Ma bezet</span>
-                <span class="val">
-                    <span class="stav-sel">
-                        <button class="stav-btn ${box.mk_expected==='run'?'active-run':''}" data-action="mk-expected" data-vpn="${vpn.id}" data-box="${box.num}" data-val="run">ANO</button>
-                        <button class="stav-btn ${box.mk_expected==='stop'?'active-stop':''}" data-action="mk-expected" data-vpn="${vpn.id}" data-box="${box.num}" data-val="stop">NE</button>
-                    </span>
-                </span>
-            </div>
-        </div>`;
-
-        // Kamery
-        h += `<div class="box-detail-section">
-            <div class="box-detail-title">Kamery (${box.cameras.length})</div>
-            <div class="cam-list">`;
-        box.cameras.forEach((cam, i) => {
-            const cv = vizStav(cam.expected, cam.status);
-            h += `<div class="cam-row ${cv==='problem'?'has-problem':''}">
-                <span class="dot ${cv}"></span>
-                <span class="cam-idx">${i+1}.</span>
-                <span class="cam-ip">${cam.ip}</span>
-                <button class="btn-sm" style="padding:1px 5px;font-size:0.65em" data-action="cam-ip" data-vpn="${vpn.id}" data-box="${box.num}" data-cam="${i}">edit</button>
-                <span class="cam-type">${cam.ip_typ}</span>
-                <span class="cam-model">${cam.model}</span>
-                <span style="margin-left:auto;font-size:0.75em;color:${cv==='problem'?'#ef4444':cv==='ok'?'#22c55e':'#6b7280'}">${vizLabel(cam.expected, cam.status)}</span>
-                <span class="stav-sel">
-                    <button class="stav-btn ${cam.expected==='run'?'active-run':''}" data-action="cam-expected" data-vpn="${vpn.id}" data-box="${box.num}" data-cam="${i}" data-val="run">run</button>
-                    <button class="stav-btn ${cam.expected==='stop'?'active-stop':''}" data-action="cam-expected" data-vpn="${vpn.id}" data-box="${box.num}" data-cam="${i}" data-val="stop">stop</button>
-                </span>
+    // --- Lokace + historie presunu ---
+    h += `<div class="detail-section">
+        <div class="detail-title">Lokace</div>
+        <div style="font-size:0.9em;color:#e2e8f0;margin-bottom:8px">${box.lokace || box.comment || '—'}</div>
+        ${box.comment && box.comment !== box.lokace ? `<div style="font-size:0.8em;color:#64748b;margin-bottom:8px">${box.comment}</div>` : ''}
+        <button class="btn-sm" data-action="presun" data-box="${key}">Zapsat presun</button>`;
+    if (box.historie && box.historie.length > 0) {
+        h += '<div style="margin-top:10px"><div class="detail-title">Historie presunu</div><div class="historie-list">';
+        box.historie.forEach(hi => {
+            h += `<div class="historie-item">
+                <span class="h-date">${hi.datum}</span>
+                <span class="h-lokace">${hi.lokace}</span>
+                ${hi.pozn ? `<span class="h-pozn" style="color:#64748b;font-style:italic">— ${hi.pozn}</span>` : ''}
             </div>`;
         });
         h += '</div></div>';
+    }
+    h += '</div>';
 
-        // Lokace + historie
-        h += `<div class="box-detail-section">
-            <div class="box-detail-title">Lokace</div>
-            <div style="font-size:0.9em;color:#e2e8f0;margin-bottom:8px">${box.lokace}</div>
-            <button class="btn-sm" data-action="presun" data-vpn="${vpn.id}" data-box="${box.num}">Zapsat presun</button>`;
+    h += '</div>';
 
-        if (box.historie && box.historie.length > 0) {
-            h += '<div style="margin-top:10px"><div class="box-detail-title">Historie presunu</div><div class="historie-list">';
-            box.historie.forEach(hi => {
-                h += `<div class="historie-item">
-                    <span class="h-date">${hi.datum}</span>
-                    <span class="h-lokace">${hi.lokace}</span>
-                    ${hi.pozn ? `<span class="h-pozn">— ${hi.pozn}</span>` : ''}
-                </div>`;
+    h += '</div>';
+    return h;
+}
+
+function renderNVR(nvr) {
+    let h = `<div class="nvr-card">
+        <div class="nvr-header">
+            <span class="dot dot-lg ${nvr.status === 'online' ? 'ok' : 'problem'}"></span>
+            <div>
+                <div class="nvr-name">${nvr.name} <span style="font-size:0.7em;font-weight:400;color:#64748b">(${nvr.role})</span></div>
+                <div class="nvr-ip">${nvr.ip} / ${nvr.local_ip}</div>
+            </div>
+        </div>`;
+
+    // Pocet boxu pripojenych k tomuto NVR
+    const nvrBoxes = DATA.boxes.filter(b => b.nvr === nvr.id);
+    const nvrBoxesOnline = nvrBoxes.filter(b => b.mk_status === 'online').length;
+    h += `<div class="nvr-meta">
+        <span><span class="nm-lbl">Boxy:</span> ${nvrBoxesOnline}/${nvrBoxes.length}</span>
+        ${nvr.streams ? `<span><span class="nm-lbl">RTSP streamu:</span> <strong style="color:#f59e0b">${nvr.streams}</strong></span>` : ''}
+        <span><span class="nm-lbl">VPN:</span> ${vpnName(nvr.vpn)}</span>
+    </div>`;
+
+    if (nvr.snmp) {
+        const s = nvr.snmp;
+        const ad = s.disks.filter(d => d.status === 'aktivni');
+        h += `<div class="nvr-meta">
+            <span><span class="nm-lbl">Model:</span> ${s.model}</span>
+            <span><span class="nm-lbl">FW:</span> ${s.fw}</span>
+        </div>`;
+        h += `<div class="disk-info">Disky: ${ad.length}/${s.disks.length} slotu — ${s.capacity_tb} TB celkem (kazdy ${ad.length > 0 ? ad[0].tb : '?'} TB, cyklicky zapis)</div>`;
+        let slots = '';
+        s.disks.forEach(d => {
+            const isA = d.status === 'aktivni';
+            let popup = `<div class="dp-title">Slot ${d.id}</div>`;
+            if (isA) {
+                popup += `<div class="dp-row"><span class="dp-lbl">Stav</span><span class="dp-val" style="color:#22c55e">aktivni</span></div>`;
+                popup += `<div class="dp-row"><span class="dp-lbl">Kapacita</span><span class="dp-val">${d.tb} TB</span></div>`;
+                popup += `<div class="dp-row"><span class="dp-lbl">Rezim</span><span class="dp-val">cyklicky zapis</span></div>`;
+                popup += `<div class="dp-row"><span class="dp-lbl">S/N</span><span class="dp-val" style="color:#475569">neni v SNMP</span></div>`;
+                popup += `<div class="dp-row"><span class="dp-lbl">Teplota</span><span class="dp-val" style="color:#475569">neni v SNMP</span></div>`;
+            } else {
+                popup += `<div class="dp-row"><span class="dp-lbl">Stav</span><span class="dp-val" style="color:#475569">prazdny slot</span></div>`;
+            }
+            slots += `<span class="disk-slot ${isA ? 'active' : 'empty'}">${d.id}<span class="disk-popup">${popup}</span></span>`;
+        });
+        h += `<div class="disk-slots">${slots}</div>`;
+        h += `<div class="snmp-ts">SNMP: ${s.ip} / ${fmtTime(s.snmp_time)}</div>`;
+    }
+    h += '</div>';
+    return h;
+}
+
+function renderVPNSite(vpn) {
+    const vpnBoxes = DATA.boxes.filter(b => b.vpn === vpn.id);
+    const vpnNvrs = DATA.nvr.filter(n => n.vpn === vpn.id);
+    const d = vpn.dhcp;
+
+    let h = `<div class="vpn-site">`;
+
+    // Header
+    h += `<div class="vpn-site-header">
+        <span class="dot ${vpn.status === 'online' ? 'ok' : 'problem'}"></span>
+        <span class="vs-name">${vpn.name}</span>
+        <span class="vs-ip">${vpn.ip}:${vpn.port}</span>
+        <span class="vs-meta">${vpn.model} / v${vpn.routeros}</span>
+        <span class="vs-uptime">uptime ${vpn.uptime}</span>
+    </div>`;
+
+    // Casovac kontroly — technik vidi kdy se data nactou
+    if (vpn.last_check) {
+        const lastCheck = new Date(vpn.last_check);
+        const nextCheck = new Date(lastCheck.getTime() + vpn.check_interval_min * 60000);
+        const now = new Date();
+        const elapsed = Math.max(0, now - lastCheck) / 60000;
+        const remaining = Math.max(0, vpn.check_interval_min - elapsed);
+        const pct = Math.min(100, (elapsed / vpn.check_interval_min) * 100);
+
+        h += `<div class="check-bar">
+            <span class="cb-label">Posledni vycet:</span>
+            <span class="cb-time">${fmtTime(vpn.last_check)}</span>
+            <span class="cb-label">|</span>
+            <span class="cb-label">Interval:</span>
+            <span class="cb-interval">${vpn.check_interval_min} min</span>
+            <span class="cb-label">|</span>
+            <span class="cb-label">Dalsi za:</span>
+            <span class="cb-next">~${remaining < 1 ? 'ted' : Math.ceil(remaining) + ' min'}</span>
+            <span class="cb-progress"><span class="cb-progress-fill" style="width:${pct}%"></span></span>
+        </div>`;
+    }
+
+    // IP prehled site — vsechny IP pohromade, rozdelene podle typu
+    h += `<div class="ip-overview">
+        <div class="io-title">Prehled IP v siti 192.168.50.0/24</div>`;
+
+    // 1. Staticke IP = L2TP boxy
+    h += `<div class="ip-group">
+        <div class="ig-label">Staticke (L2TP boxy) <span class="ig-count">${vpnBoxes.length}</span></div>
+        <div class="ip-chips">`;
+    vpnBoxes.sort((a,b) => parseInt(a.num) - parseInt(b.num)).forEach(box => {
+        const v = vizStav(box.mk_expected, box.mk_status);
+        const style = v === 'ok' ? 'static' : v === 'problem' ? 'static" style="border-color:#ef444466;color:#ef4444;background:#ef444408' : '';
+        h += `<span class="ip-chip ${style}" title="${box.lokace || box.comment || 'cam_'+box.num}">.${box.num}</span>`;
+    });
+    h += '</div></div>';
+
+    // 2. NVR
+    if (vpnNvrs.length > 0) {
+        h += `<div class="ip-group">
+            <div class="ig-label">NVR <span class="ig-count">${vpnNvrs.length}</span></div>
+            <div class="ip-chips">`;
+        vpnNvrs.forEach(n => {
+            const short = n.local_ip.replace('192.168.50.', '.');
+            h += `<span class="ip-chip nvr" title="${n.name}">${short === '—' ? n.ip : short} ${n.name}</span>`;
+        });
+        h += '</div></div>';
+    }
+
+    // 3. DHCP aktivni lease
+    if (d && d.leases.length > 0) {
+        h += `<div class="ip-group">
+            <div class="ig-label">DHCP aktivni <span class="ig-count">${d.leases.length}</span></div>
+            <div class="ip-chips">`;
+        d.leases.forEach(l => {
+            const short = l.ip.replace('192.168.50.', '.');
+            h += `<span class="ip-chip dhcp" title="${l.mac} / ${l.hostname || '?'}">${short}</span>`;
+        });
+        h += '</div></div>';
+    }
+
+    // 4. Gateway
+    if (vpn.known_ips) {
+        const gws = vpn.known_ips.filter(k => k.typ === 'gateway');
+        if (gws.length > 0) {
+            h += `<div class="ip-group">
+                <div class="ig-label">Gateway</div>
+                <div class="ip-chips">`;
+            gws.forEach(g => {
+                h += `<span class="ip-chip gw">${g.ip.replace('192.168.50.', '.')} ${g.popis}</span>`;
             });
             h += '</div></div>';
         }
-        h += '</div>';
+    }
 
-        h += '</div></div>'; // box-detail, box-card
-    });
-    h += '</div>';
+    h += '</div>'; // .ip-overview
+
+    // DHCP pool detail — tabulka lease
+    if (d) {
+        const poolSize = ipToNum(d.pool_end) - ipToNum(d.pool_start) + 1;
+        h += `<div class="dhcp-section">
+            <div class="dhcp-pool-header">
+                <span class="dp-label">DHCP Pool</span>
+                <span class="dp-range">${d.pool_start} — ${d.pool_end} (${poolSize} adres)</span>
+                <span class="dp-count">${d.leases.length} obsazeno</span>
+            </div>`;
+
+        if (d.leases.length > 0) {
+            h += '<table class="dhcp-table"><thead><tr><th>IP</th><th>MAC</th><th>Hostname</th><th>Pred</th><th>Vyprsi za</th></tr></thead><tbody>';
+            d.leases.forEach((l, i) => {
+                h += `<tr class="${i === 0 ? 'newest' : ''}">`;
+                h += `<td class="ip">${l.ip}${i === 0 ? '<span class="dhcp-badge">NEJNOVEJSI</span>' : ''}</td>`;
+                h += `<td class="mac">${l.mac}</td>`;
+                h += `<td>${l.hostname || '<span style="color:#334155">—</span>'}</td>`;
+                h += `<td class="ls">${l.last_seen}</td>`;
+                h += `<td class="ls">${l.expires}</td>`;
+                h += '</tr>';
+            });
+            h += '</tbody></table>';
+        } else {
+            h += '<div class="dhcp-empty">Zadne aktivni DHCP lease — pool je prazdny</div>';
+        }
+        h += '</div>';
+    }
+
+    h += '</div>'; // .vpn-site
     return h;
+}
+
+function ipToNum(ip) {
+    return ip.split('.').reduce((acc, oct) => (acc << 8) + parseInt(oct), 0) >>> 0;
 }
 
 // ============================================================
 // AKCE
 // ============================================================
+let modalData = null;
+
 function handleAction(el) {
     const action = el.dataset.action;
-    const vpn = DATA.vpn_servers.find(v => v.id === el.dataset.vpn);
-    if (!vpn) return;
-    const box = vpn.boxes.find(b => b.num === el.dataset.box);
+    const box = DATA.boxes.find(b => boxKey(b) === el.dataset.box);
     if (!box) return;
 
     if (action === 'mk-expected') {
@@ -649,31 +1010,29 @@ function handleAction(el) {
         render();
     } else if (action === 'cam-expected') {
         const ci = parseInt(el.dataset.cam);
-        box.cameras[ci].expected = el.dataset.val;
-        render();
+        if (box.cams && box.cams[ci]) { box.cams[ci].expected = el.dataset.val; render(); }
     } else if (action === 'cam-ip') {
-        const ci = parseInt(el.dataset.cam);
-        modalData = { vpnId: el.dataset.vpn, boxNum: el.dataset.box, type: 'cam-ip', camIdx: ci };
+        modalData = { boxKey: el.dataset.box, type: 'cam-ip', camIdx: parseInt(el.dataset.cam) };
         render();
     } else if (action === 'presun') {
-        modalData = { vpnId: el.dataset.vpn, boxNum: el.dataset.box, type: 'presun' };
+        modalData = { boxKey: el.dataset.box, type: 'presun' };
         render();
     }
 }
 
 // ============================================================
-// MODAL — presun boxu
+// MODAL — presun boxu / editace IP kamery
 // ============================================================
 function renderModal() {
     const root = document.getElementById('modal-root');
     if (!modalData) { root.innerHTML = ''; return; }
 
-    const vpn = DATA.vpn_servers.find(v => v.id === modalData.vpnId);
-    const box = vpn.boxes.find(b => b.num === modalData.boxNum);
+    const box = DATA.boxes.find(b => boxKey(b) === modalData.boxKey);
+    if (!box) { root.innerHTML = ''; return; }
     let html = '';
 
     if (modalData.type === 'cam-ip') {
-        const cam = box.cameras[modalData.camIdx];
+        const cam = box.cams[modalData.camIdx];
         html = `<div class="modal-overlay" id="modal-bg"><div class="modal">
             <h3>Zmena IP — BOX ${box.num}, kamera ${modalData.camIdx + 1}</h3>
             <label>Stavajici IP</label>
@@ -692,7 +1051,7 @@ function renderModal() {
         </div></div>`;
     } else {
         html = `<div class="modal-overlay" id="modal-bg"><div class="modal">
-            <h3>Presun BOX ${modalData.boxNum}</h3>
+            <h3>Presun BOX ${box.num}</h3>
             <label>Nova lokace</label>
             <input type="text" id="m-lokace" placeholder="napr. Trmice, lampa 4567">
             <label>Poznamka</label>
@@ -706,37 +1065,28 @@ function renderModal() {
 
     root.innerHTML = html;
 
-    // Zavreni
     document.getElementById('m-cancel').addEventListener('click', () => { modalData = null; render(); });
     document.getElementById('modal-bg').addEventListener('click', e => { if (e.target.id === 'modal-bg') { modalData = null; render(); } });
 
-    // Ulozeni
     document.getElementById('m-ok').addEventListener('click', () => {
         if (modalData.type === 'cam-ip') {
             const newIp = document.getElementById('m-ip').value.trim();
             if (!newIp) return;
-            const cam = box.cameras[modalData.camIdx];
-            cam.ip = newIp;
-            // ip_typ buttons
-            // (handled below)
+            box.cams[modalData.camIdx].ip = newIp;
         } else {
             const lok = document.getElementById('m-lokace').value.trim();
             if (!lok) return;
             const pozn = document.getElementById('m-pozn').value.trim();
-            box.historie.unshift({
-                datum: new Date().toISOString().slice(0,10),
-                lokace: lok,
-                pozn: pozn || 'presun'
-            });
+            if (!box.historie) box.historie = [];
+            box.historie.unshift({ datum: new Date().toISOString().slice(0,10), lokace: lok, pozn: pozn || 'presun' });
             box.lokace = lok;
         }
         modalData = null;
         render();
     });
 
-    // IP typ prepinace
     if (modalData.type === 'cam-ip') {
-        const cam = box.cameras[modalData.camIdx];
+        const cam = box.cams[modalData.camIdx];
         document.getElementById('m-static').addEventListener('click', () => { cam.ip_typ = 'static'; render(); });
         document.getElementById('m-dhcp').addEventListener('click', () => { cam.ip_typ = 'dhcp'; render(); });
     }
