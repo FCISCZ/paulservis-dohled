@@ -647,25 +647,19 @@ function renderVPNSite(vpn) {
         <span class="vs-uptime">uptime ${vpn.uptime}</span>
     </div>`;
 
-    // Casovac kontroly — technik vidi kdy se data nactou
+    // Casovac kontroly
     if (vpn.last_check) {
         const lastCheck = new Date(vpn.last_check);
-        const nextCheck = new Date(lastCheck.getTime() + vpn.check_interval_min * 60000);
         const now = new Date();
         const elapsed = Math.max(0, now - lastCheck) / 60000;
-        const remaining = Math.max(0, vpn.check_interval_min - elapsed);
-        const pct = Math.min(100, (elapsed / vpn.check_interval_min) * 100);
+        const interval = vpn.check_interval_min || DATA.check_interval_min || 15;
 
         h += `<div class="check-bar">
             <span class="cb-label">Posledni vycet:</span>
             <span class="cb-time">${fmtTime(vpn.last_check)}</span>
             <span class="cb-label">|</span>
-            <span class="cb-label">Interval:</span>
-            <span class="cb-interval">${vpn.check_interval_min} min</span>
-            <span class="cb-label">|</span>
-            <span class="cb-label">Dalsi za:</span>
-            <span class="cb-next">~${remaining < 1 ? 'ted' : Math.ceil(remaining) + ' min'}</span>
-            <span class="cb-progress"><span class="cb-progress-fill" style="width:${pct}%"></span></span>
+            <span class="cb-label">Stari dat:</span>
+            <span class="cb-next" style="color:${elapsed > interval * 2 ? '#ef4444' : elapsed > interval ? '#f59e0b' : '#22c55e'}">${elapsed < 1 ? '< 1 min' : Math.floor(elapsed) + ' min'}</span>
         </div>`;
     }
 
