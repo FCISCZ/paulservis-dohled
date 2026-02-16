@@ -697,13 +697,16 @@ function renderVPNSite(vpn) {
     }
 
     // 3. DHCP aktivni lease
-    if (d && d.leases.length > 0) {
+    if (d && d.leases && d.leases.length > 0) {
         h += `<div class="ip-group">
             <div class="ig-label">DHCP aktivni <span class="ig-count">${d.leases.length}</span></div>
             <div class="ip-chips">`;
         d.leases.forEach(l => {
-            const short = l.ip.replace('192.168.50.', '.');
-            h += `<span class="ip-chip dhcp" title="${l.mac} / ${l.hostname || '?'}">${short}</span>`;
+            const lip = l.ip || l.address || '?';
+            const lmac = l.mac || l.mac_address || '?';
+            const lhost = l.hostname || l.host_name || '?';
+            const short = lip.replace('192.168.50.', '.');
+            h += `<span class="ip-chip dhcp" title="${lmac} / ${lhost}">${short}</span>`;
         });
         h += '</div></div>';
     }
@@ -734,15 +737,18 @@ function renderVPNSite(vpn) {
                 <span class="dp-count">${d.leases.length} obsazeno</span>
             </div>`;
 
-        if (d.leases.length > 0) {
-            h += '<table class="dhcp-table"><thead><tr><th>IP</th><th>MAC</th><th>Hostname</th><th>Pred</th><th>Vyprsi za</th></tr></thead><tbody>';
+        if (d.leases && d.leases.length > 0) {
+            h += '<table class="dhcp-table"><thead><tr><th>IP</th><th>MAC</th><th>Hostname</th><th>Stav</th><th>Pred</th></tr></thead><tbody>';
             d.leases.forEach((l, i) => {
+                const lip = l.ip || l.address || '?';
+                const lmac = l.mac || l.mac_address || '?';
+                const lhost = l.hostname || l.host_name || '';
                 h += `<tr class="${i === 0 ? 'newest' : ''}">`;
-                h += `<td class="ip">${l.ip}${i === 0 ? '<span class="dhcp-badge">NEJNOVEJSI</span>' : ''}</td>`;
-                h += `<td class="mac">${l.mac}</td>`;
-                h += `<td>${l.hostname || '<span style="color:#334155">—</span>'}</td>`;
-                h += `<td class="ls">${l.last_seen}</td>`;
-                h += `<td class="ls">${l.expires}</td>`;
+                h += `<td class="ip">${lip}${i === 0 ? '<span class="dhcp-badge">NEJNOVEJSI</span>' : ''}</td>`;
+                h += `<td class="mac">${lmac}</td>`;
+                h += `<td>${lhost || '<span style="color:#334155">—</span>'}</td>`;
+                h += `<td class="ls">${l.status || '—'}</td>`;
+                h += `<td class="ls">${l.last_seen || '—'}</td>`;
                 h += '</tr>';
             });
             h += '</tbody></table>';
