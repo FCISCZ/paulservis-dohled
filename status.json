@@ -1,21 +1,21 @@
 {
-  "timestamp": "2026-02-16T22:05:20.176035+00:00",
+  "timestamp": "2026-02-16T22:41:31.759709+00:00",
   "check_interval_min": 15,
   "collection": {
     "vpn1": {
       "status": "ok",
       "error": "",
-      "time": "2026-02-16T22:05:20.176035+00:00"
+      "time": "2026-02-16T22:41:31.759709+00:00"
     },
     "vpn5": {
       "status": "ok",
       "error": "",
-      "time": "2026-02-16T22:05:20.176035+00:00"
+      "time": "2026-02-16T22:41:31.759709+00:00"
     },
     "mk_netflix": {
       "status": "error",
       "error": "ssh: connect to host 93.99.172.72 port 2222: Connection timed out",
-      "time": "2026-02-16T22:05:20.176035+00:00"
+      "time": "2026-02-16T22:41:31.759709+00:00"
     }
   },
   "nvr": [
@@ -29,7 +29,7 @@
       "status": "online",
       "streams": null,
       "snmp": {
-        "snmp_time": "2026-02-16T22:05:20.165222+00:00",
+        "snmp_time": "2026-02-16T22:41:31.735417+00:00",
         "disk_raw": "iso.3.6.1.2.1.25.2.3.1 = No Such Object available on this agent at this OID"
       },
       "snmp_status": "vycteno"
@@ -77,40 +77,43 @@
       "model": "CCR2004-16G-2S+",
       "bridge_ip": "192.168.50.254/24",
       "status": "online",
-      "last_check": "2026-02-16T22:05:20.176035+00:00",
+      "last_check": "2026-02-16T22:41:31.759709+00:00",
       "check_interval_min": 15,
       "routeros": "7.13",
-      "uptime": "1w2d8h38m20s",
+      "uptime": "1w2d9h14m31s",
       "identity": "hotelak VPN 01",
       "dhcp": {
         "pool_start": "192.168.50.150",
         "pool_end": "192.168.50.250",
         "leases": [
           {
-            "address": "SS",
-            "mac_address": "MAC-ADDRESS",
-            "host_name": "HOS",
-            "server": "T-NAME",
-            "status": "SERVE",
-            "last_seen": "R  STATUS  LAST-SEEN"
+            "ip": "192.168.50.180",
+            "mac": "74:4D:28:3B:A3:4E",
+            "hostname": "VPN_client_1",
+            "last_seen": "2h59m23s",
+            "expires": ""
           },
           {
-            "address": "68.50.180",
-            "mac_address": "74:4D:28:3B",
-            "host_name": ":A3:4E  VPN",
-            "server": "_client_",
-            "status": "1  dhcp1",
-            "last_seen": "bound   2h23m12s"
-          },
-          {
-            "address": "68.50.189",
-            "mac_address": "6C:F1:7E:85",
-            "host_name": ":F9:16",
-            "status": "dhcp1",
-            "last_seen": "bound   11h46m15s"
+            "ip": "192.168.50.189",
+            "mac": "6C:F1:7E:85:F9:16",
+            "hostname": "",
+            "last_seen": "17m26s",
+            "expires": ""
           }
         ]
-      }
+      },
+      "known_ips": [
+        {
+          "ip": "192.168.50.253",
+          "typ": "nvr",
+          "popis": "NVR Paulservis"
+        },
+        {
+          "ip": "192.168.50.254",
+          "typ": "gateway",
+          "popis": "Bridge VPN1"
+        }
+      ]
     },
     {
       "id": "vpn5",
@@ -120,37 +123,48 @@
       "model": "RB1100AHx4 Dude Ed.",
       "bridge_ip": "192.168.50.254/24",
       "status": "online",
-      "last_check": "2026-02-16T22:05:20.176035+00:00",
+      "last_check": "2026-02-16T22:41:31.759709+00:00",
       "check_interval_min": 15,
       "routeros": "7.12.1",
-      "uptime": "1w2d8h38m7s",
+      "uptime": "1w2d9h14m18s",
       "identity": "hotelak VPN 02",
       "dhcp": {
         "pool_start": "192.168.50.150",
         "pool_end": "192.168.50.250",
         "leases": [
           {
-            "address": "SS",
-            "mac_address": "MAC-ADDRESS",
-            "status": "SERVER",
-            "last_seen": "STATUS  LAST-SEEN"
+            "ip": "192.168.50.196",
+            "mac": "6C:F1:7E:D3:2E:B0",
+            "hostname": "",
+            "last_seen": "10h11m53s",
+            "expires": ""
           },
           {
-            "address": "68.50.196",
-            "mac_address": "6C:F1:7E:D3",
-            "server": ":2E:B0",
-            "status": "dhcp1",
-            "last_seen": "bound   9h35m41s"
-          },
-          {
-            "address": "68.50.185",
-            "mac_address": "C4:79:05:82",
-            "server": ":D2:06",
-            "status": "dhcp1",
-            "last_seen": "bound   7h7m7s"
+            "ip": "192.168.50.185",
+            "mac": "C4:79:05:82:D2:06",
+            "hostname": "",
+            "last_seen": "7h43m19s",
+            "expires": ""
           }
         ]
-      }
+      },
+      "known_ips": [
+        {
+          "ip": "192.168.50.52",
+          "typ": "nvr",
+          "popis": "NVR Stavba"
+        },
+        {
+          "ip": "192.168.50.51",
+          "typ": "nvr",
+          "popis": "NVR Chabarovice"
+        },
+        {
+          "ip": "192.168.50.254",
+          "typ": "gateway",
+          "popis": "Bridge VPN5"
+        }
+      ]
     }
   ],
   "boxes": [
@@ -160,7 +174,7 @@
       "nvr": "nvr_fc",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h13m53s",
+      "uptime": "1w2d8h50m4s",
       "client_ip": "46.135.87.153",
       "lokace": "horeni",
       "comment": "",
@@ -182,7 +196,7 @@
       "nvr": "nvr_fc",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m36s",
+      "uptime": "1w2d9h13m47s",
       "client_ip": "46.135.21.40",
       "lokace": "garaze MP",
       "comment": "",
@@ -212,7 +226,7 @@
       "nvr": "nvr_fc",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "5d10h30m41s",
+      "uptime": "5d11h6m52s",
       "client_ip": "46.135.88.50",
       "lokace": "horeni",
       "comment": "",
@@ -234,7 +248,7 @@
       "nvr": "nvr_fc",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m37s",
+      "uptime": "1w2d9h13m48s",
       "client_ip": "46.135.95.3",
       "lokace": "tvorba SW sasa",
       "comment": "",
@@ -256,7 +270,7 @@
       "nvr": "nvr_fc",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "3d22h56m19s",
+      "uptime": "3d23h32m30s",
       "client_ip": "46.135.9.212",
       "lokace": "Usti, Bina",
       "comment": "",
@@ -294,7 +308,7 @@
       "nvr": "nvr_fc",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m7s",
+      "uptime": "1w2d9h13m18s",
       "client_ip": "46.135.84.139",
       "lokace": "",
       "comment": "",
@@ -316,7 +330,7 @@
       "nvr": "nvr_fc",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "5d7h20m24s",
+      "uptime": "5d7h56m35s",
       "client_ip": "46.135.94.255",
       "lokace": "",
       "comment": "",
@@ -338,7 +352,7 @@
       "nvr": "nvr_fc",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m22s",
+      "uptime": "1w2d9h13m33s",
       "client_ip": "46.135.81.212",
       "lokace": "",
       "comment": "",
@@ -360,7 +374,7 @@
       "nvr": "nvr_fc",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m27s",
+      "uptime": "1w2d9h13m38s",
       "client_ip": "46.135.7.125",
       "lokace": "",
       "comment": "",
@@ -382,7 +396,7 @@
       "nvr": "nvr_fc",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m38s",
+      "uptime": "1w2d9h13m49s",
       "client_ip": "46.135.83.16",
       "lokace": "",
       "comment": "",
@@ -404,7 +418,7 @@
       "nvr": "nvr_fc",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m34s",
+      "uptime": "1w2d9h13m45s",
       "client_ip": "46.135.29.255",
       "lokace": "",
       "comment": "",
@@ -426,7 +440,7 @@
       "nvr": "nvr_fc",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m31s",
+      "uptime": "1w2d9h13m42s",
       "client_ip": "46.135.20.124",
       "lokace": "",
       "comment": "",
@@ -456,7 +470,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m13s",
+      "uptime": "1w2d9h13m25s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -469,7 +483,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m39s",
+      "uptime": "1w2d9h13m51s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -482,7 +496,7 @@
       "nvr": "nvr_chab",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m18s",
+      "uptime": "1w2d9h13m30s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -495,7 +509,7 @@
       "nvr": "nvr_chab",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h13m55s",
+      "uptime": "1w2d8h50m7s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -508,7 +522,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m30s",
+      "uptime": "1w2d9h13m42s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -521,7 +535,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1h47m39s",
+      "uptime": "2h23m51s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -534,7 +548,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m9s",
+      "uptime": "1w2d9h13m21s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -547,7 +561,7 @@
       "nvr": "nvr_chab",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "8h27m37s",
+      "uptime": "9h3m49s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -560,7 +574,7 @@
       "nvr": "nvr_chab",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1h55m20s",
+      "uptime": "2h31m32s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -573,7 +587,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m39s",
+      "uptime": "1w2d9h13m51s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -586,7 +600,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h13m31s",
+      "uptime": "1w2d8h49m43s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -599,7 +613,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m25s",
+      "uptime": "1w2d9h13m37s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -612,7 +626,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m25s",
+      "uptime": "1w2d9h13m37s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -625,7 +639,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m29s",
+      "uptime": "1w2d9h13m41s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -638,7 +652,7 @@
       "nvr": "nvr_chab",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "5d1h36m30s",
+      "uptime": "5d2h12m42s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -651,7 +665,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "24m8s",
+      "uptime": "1h20s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -664,7 +678,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "5d2h3m42s",
+      "uptime": "5d2h39m54s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -677,7 +691,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m31s",
+      "uptime": "1w2d9h13m43s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
@@ -690,7 +704,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h37m31s",
+      "uptime": "1w2d9h13m43s",
       "client_ip": "",
       "lokace": "",
       "comment": "",
