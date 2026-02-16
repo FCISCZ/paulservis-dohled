@@ -1153,10 +1153,11 @@ function renderCollectionBanner() {
     </div>`;
 }
 
-// Prvni nacitani — zkus live, fallback na hardcoded
-loadLiveData().then(ok => {
-    if (!ok) render(); // pouzij hardcoded
-});
+// Vykresli hned s hardcoded daty
+render();
+
+// Pak zkus nacist live data (prepise hardcoded)
+loadLiveData();
 
 // Auto-refresh kazdych 15 min
 setInterval(loadLiveData, 15 * 60 * 1000);
