@@ -235,272 +235,7 @@ body {
 // ============================================================
 // DATA — nacitane z status.json (generovane GitLab CI)
 // ============================================================
-let DATA = {
-    timestamp: "2026-02-16T15:30:00",
-
-    // NVR jako samostatne entity
-    nvr: [
-        {
-            id: "nvr_fc", name: "NVR Paulservis", role: "hlavni",
-            ip: "93.99.200.99", local_ip: "192.168.50.253", vpn: "vpn1",
-            status: "online", streams: 29,
-            snmp: {
-                ip: "192.168.100.241", community: "cist",
-                model: "NVR516-128", fw: "B5101.39.48.250408", sn: "210235T3X3317A000001",
-                disks: [
-                    { id: 1, tb: 3.64, status: "aktivni" }, { id: 2, tb: 0, status: "prazdny" },
-                    { id: 3, tb: 3.64, status: "aktivni" }, { id: 4, tb: 3.64, status: "aktivni" },
-                    { id: 5, tb: 0, status: "prazdny" },    { id: 6, tb: 0, status: "prazdny" },
-                    { id: 7, tb: 3.64, status: "aktivni" }, { id: 8, tb: 3.64, status: "aktivni" },
-                    { id: 9, tb: 0, status: "prazdny" },    { id: 10, tb: 0, status: "prazdny" },
-                    { id: 11, tb: 3.64, status: "aktivni" },{ id: 12, tb: 3.64, status: "aktivni" },
-                    { id: 13, tb: 0, status: "prazdny" },   { id: 14, tb: 0, status: "prazdny" },
-                    { id: 15, tb: 3.64, status: "aktivni" },{ id: 16, tb: 3.64, status: "aktivni" }
-                ],
-                capacity_tb: 29.1, snmp_time: "2026-02-16T15:30:00"
-            }
-        },
-        {
-            id: "nvr_stavba", name: "NVR Stavba", role: "hlavni",
-            ip: "93.99.200.100", local_ip: "192.168.50.52", vpn: "vpn5",
-            status: "online", streams: 55
-        },
-        {
-            id: "nvr_chab", name: "NVR Chabarovice", role: "hlavni",
-            ip: "93.99.200.102", local_ip: "192.168.50.51", vpn: "vpn5",
-            status: "online", streams: 7
-        },
-        {
-            id: "nvr_ext", name: "NVR Externi", role: "vedlejsi",
-            ip: "109.202.68.102", local_ip: "—", vpn: "vpn5",
-            status: "online", streams: 20
-        }
-    ],
-
-    // VPN servery (pro DHCP a technicky detail)
-    vpn_servers: [
-        {
-            id: "vpn1", name: "VPN1", ip: "93.99.200.101", port: 50022,
-            model: "CCR2004-16G-2S+", routeros: "7.13", uptime: "1w2d6h",
-            identity: "hotelak VPN 01", status: "online",
-            bridge_ip: "192.168.50.254/24",
-            last_check: "2026-02-16T15:30:00",
-            check_interval_min: 10,
-            known_ips: [
-                { ip: "192.168.50.253", typ: "nvr", popis: "NVR Paulservis" },
-                { ip: "192.168.50.254", typ: "gateway", popis: "Bridge VPN1" }
-            ],
-            dhcp: {
-                pool_start: "192.168.50.150", pool_end: "192.168.50.250",
-                leases: [
-                    { ip: "192.168.50.180", mac: "74:4D:28:3B:A3:4E", hostname: "VPN_client_1", last_seen: "12h", expires: "12h8m" },
-                    { ip: "192.168.50.189", mac: "6C:F1:7E:85:F9:16", hostname: "", last_seen: "9h19m", expires: "14h50m" }
-                ]
-            }
-        },
-        {
-            id: "vpn5", name: "VPN5", ip: "93.99.200.105", port: 50022,
-            model: "RB1100AHx4 Dude Ed.", routeros: "7.12.1", uptime: "1w2d6h15m",
-            identity: "hotelak VPN 02", status: "online",
-            bridge_ip: "192.168.50.254/24",
-            last_check: "2026-02-16T15:30:00",
-            check_interval_min: 10,
-            known_ips: [
-                { ip: "192.168.50.52", typ: "nvr", popis: "NVR Stavba" },
-                { ip: "192.168.50.51", typ: "nvr", popis: "NVR Chabarovice" },
-                { ip: "192.168.50.254", typ: "gateway", popis: "Bridge VPN5" }
-            ],
-            dhcp: {
-                pool_start: "192.168.50.150", pool_end: "192.168.50.250",
-                leases: [
-                    { ip: "192.168.50.196", mac: "6C:F1:7E:D3:2E:B0", hostname: "", last_seen: "7h13m", expires: "16h56m" },
-                    { ip: "192.168.50.185", mac: "C4:79:05:82:D2:06", hostname: "", last_seen: "4h45m", expires: "19h24m" }
-                ]
-            }
-        }
-    ],
-
-    // Boxy — ziva data z VPN1 + mockup VPN5
-    boxes: [
-        // === VPN1 — ZIVA DATA ===
-        { num: "03", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d5h47m", client_ip: "46.135.87.153", lokace: "horeni", comment: "",
-          historie: [{ datum: "2026-02-10", lokace: "horeni", pozn: "presun z centra" }],
-          cams: [{ ip: "192.168.50.203", ip_mk: "192.168.50.203", ip_snmp: "192.168.50.203", mac: "", model: "IPC2124SR3", ip_typ: "dhcp", status: "online", expected: "run", uptime: "14d2h" }] },
-        { num: "05", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h10m", client_ip: "46.135.21.40", lokace: "garaze MP", comment: "garaze MP",
-          historie: [{ datum: "2026-01-20", lokace: "garaze MP", pozn: "instalace dvou kamer" }],
-          cams: [
-            { ip: "192.168.50.205", ip_mk: "192.168.50.205", ip_snmp: "192.168.50.205", mac: "", model: "IPC2124SR3", ip_typ: "static", status: "online", expected: "run", uptime: "9d5h" },
-            { ip: "192.168.50.215", ip_mk: "192.168.50.215", ip_snmp: "192.168.50.180", mac: "", model: "IPC2322LB", ip_typ: "dhcp", status: "online", expected: "run", uptime: "2d1h" }
-          ] },
-        { num: "09", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "5d8h", client_ip: "46.135.88.50", lokace: "horeni", comment: "box 6, ip248, horeni",
-          historie: [{ datum: "2026-02-01", lokace: "horeni", pozn: "presun z Prestanova" }],
-          cams: [{ ip: "192.168.50.248", mac: "", model: "IPC2124SR3", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "12", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h10m", client_ip: "46.135.95.3", lokace: "tvorba SW sasa", comment: "tvorba SW sasa",
-          historie: [{ datum: "2026-01-05", lokace: "tvorba SW sasa", pozn: "trvale umisteni" }],
-          cams: [{ ip: "192.168.50.212", mac: "", model: "IPC2322LB", ip_typ: "dhcp", status: "online", expected: "run" }] },
-        { num: "24", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "3d20h29m", client_ip: "46.135.9.212", lokace: "—", comment: "",
-          historie: [{ datum: "2026-02-14", lokace: "Usti, Bina", pozn: "presun ze Sibrky" }, { datum: "2026-01-10", lokace: "Sibrka, parkoviste", pozn: "docasne umisteni" }],
-          cams: [
-            { ip: "192.168.50.224", mac: "", model: "IPC2124SR3", ip_typ: "dhcp", status: "online", expected: "run" },
-            { ip: "192.168.50.234", mac: "", model: "IPC2124SR3", ip_typ: "dhcp", status: "online", expected: "run" },
-            { ip: "192.168.50.244", mac: "", model: "IPC2322LB", ip_typ: "dhcp", status: "offline", expected: "run" }
-          ] },
-        { num: "84", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h10m", client_ip: "46.135.84.139", lokace: "—", comment: "",
-          historie: [], cams: [{ ip: "192.168.50.184", mac: "", model: "IPC2124SR3", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "85", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "5d4h53m", client_ip: "46.135.94.255", lokace: "—", comment: "",
-          historie: [], cams: [{ ip: "192.168.50.185", mac: "", model: "IPC2124SR3", ip_typ: "dhcp", status: "online", expected: "run" }] },
-        { num: "86", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h10m", client_ip: "46.135.81.212", lokace: "—", comment: "",
-          historie: [], cams: [{ ip: "192.168.50.186", mac: "", model: "IPC2124SR3", ip_typ: "dhcp", status: "online", expected: "run" }] },
-        { num: "87", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h10m", client_ip: "46.135.7.125", lokace: "—", comment: "",
-          historie: [], cams: [{ ip: "192.168.50.187", mac: "", model: "IPC2124SR3", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "88", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h10m", client_ip: "46.135.83.16", lokace: "—", comment: "",
-          historie: [], cams: [{ ip: "192.168.50.188", mac: "", model: "IPC2322LB", ip_typ: "dhcp", status: "online", expected: "run" }] },
-        { num: "89", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h10m", client_ip: "46.135.29.255", lokace: "—", comment: "",
-          historie: [], cams: [{ ip: "192.168.50.189", mac: "", model: "IPC2124SR3", ip_typ: "dhcp", status: "online", expected: "run" }] },
-        { num: "94", vpn: "vpn1", nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h10m", client_ip: "46.135.20.124", lokace: "—", comment: "",
-          historie: [],
-          cams: [
-            { ip: "192.168.50.194", mac: "", model: "IPC2124SR3", ip_typ: "static", status: "online", expected: "run" },
-            { ip: "192.168.50.195", mac: "", model: "IPC2124SR3", ip_typ: "dhcp", status: "online", expected: "run" }
-          ] },
-        // === VPN5 — ZIVA DATA ===
-        { num: "02", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
-        { num: "04", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 2 },
-        { num: "07", vpn: "vpn5", nvr: "nvr_chab", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
-        { num: "08", vpn: "vpn5", nvr: "nvr_chab", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d5h51m", client_ip: "", lokace: "—", comment: "", cameras: 2 },
-        { num: "24", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 3 },
-        { num: "25", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
-          uptime: "7h40m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
-        { num: "28", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 2 },
-        { num: "86", vpn: "vpn5", nvr: "nvr_chab", mk_status: "online", mk_expected: "run",
-          uptime: "6h4m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
-        { num: "87", vpn: "vpn5", nvr: "nvr_chab", mk_status: "online", mk_expected: "run",
-          uptime: "4d3h35m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
-        { num: "88", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
-        { num: "89", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d5h50m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
-        { num: "90", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
-        { num: "91", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
-        { num: "92", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
-        { num: "93", vpn: "vpn5", nvr: "nvr_chab", mk_status: "online", mk_expected: "run",
-          uptime: "4d23h13m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
-        { num: "95", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
-        { num: "96", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
-          uptime: "4d23h40m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
-        { num: "97", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
-        { num: "98", vpn: "vpn5", nvr: "nvr_stavba", mk_status: "online", mk_expected: "run",
-          uptime: "1w2d6h14m", client_ip: "", lokace: "—", comment: "", cameras: 1 },
-        // === LOKALNI KAMERY ===
-        { num: "116.46", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "32w5d", lokace: "Mojzir",
-          mk_ip: "192.168.116.46", mk_model: "SXTsq Lite5", mk_routeros: "6.47.8",
-          mk_mac: "C4:AD:34:8E:32:76", mk_identity: "kamera mojriz",
-          comment: "Wi-Fi bridge, kamera pres ISP sit do NVR",
-          historie: [{ datum: "2026-01-15", lokace: "Mojzir", pozn: "instalace" }],
-          cams: [{ ip: "192.168.117.46", ip_mk: "192.168.117.46", ip_snmp: "192.168.117.46", mac: "6C:F1:7E:8F:AE:CB", model: "IPC6424SR-X25-VF", ip_typ: "static", status: "online", expected: "run", uptime: "227d10h" }] },
-        // === LOKALNI — MK BRIDGE + KAMERA (zmapovano 16.2.2026) ===
-        { num: "62.26", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "25w4d", lokace: "Opeltalova, parkoviste",
-          mk_ip: "192.168.62.26", mk_model: "SXTsq Lite5", mk_routeros: "6.49.7",
-          mk_identity: "opeltalova kamera parkoviste",
-          comment: "", historie: [],
-          cams: [{ ip: "192.168.63.26", mac: "6C:F1:7E:B0:26:9B", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "114.46", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "37w3d", lokace: "paulservis kamera",
-          mk_ip: "192.168.114.46", mk_model: "SXTsq Lite5", mk_routeros: "6.47.4",
-          mk_identity: "paulservis kamera",
-          comment: "", historie: [],
-          cams: [{ ip: "192.168.115.46", mac: "6C:F1:7E:7C:B4:78", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "74.48", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "50w", lokace: "AVE, parkoviste",
-          mk_ip: "192.168.74.48", mk_model: "SXTsq Lite5", mk_routeros: "6.49.7",
-          mk_identity: "kamera AVE parkovyste pavel",
-          comment: "", historie: [],
-          cams: [{ ip: "192.168.75.48", mac: "48:EA:63:ED:C2:2E", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "62.24", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "32w2d", lokace: "Seifertova",
-          mk_ip: "192.168.62.24", mk_model: "SXTsq Lite5", mk_routeros: "6.49.7",
-          mk_identity: "seifertova kamera pavel",
-          comment: "", historie: [],
-          cams: [{ ip: "192.168.63.24", mac: "6C:F1:7E:85:F9:1C", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "14.38", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          uptime: "3d12h", lokace: "Kovostrot",
-          mk_ip: "192.168.14.38", mk_model: "LHG HP5", mk_routeros: "6.47.9",
-          mk_identity: "kamera kovostrot pavel",
-          comment: "", historie: [],
-          cams: [{ ip: "192.168.13.38", mac: "6C:F1:7E:1A:78:A4", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        // === LOKALNI — STANDALONE KAMERY (bez bridge MK, zmapovano 16.2.2026) ===
-        { num: "100.45", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          lokace: "—", comment: "", historie: [],
-          cams: [{ ip: "192.168.100.45", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "100.46", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          lokace: "—", comment: "", historie: [],
-          cams: [{ ip: "192.168.100.46", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "100.47", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          lokace: "—", comment: "", historie: [],
-          cams: [{ ip: "192.168.100.47", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "108.12", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          lokace: "—", comment: "", historie: [],
-          cams: [{ ip: "192.168.108.12", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "208.249", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          lokace: "—", comment: "", historie: [],
-          cams: [{ ip: "192.168.208.249", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "230.16", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          lokace: "—", comment: "", historie: [],
-          cams: [{ ip: "192.168.230.16", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "230.20", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          lokace: "—", comment: "", historie: [],
-          cams: [{ ip: "192.168.230.20", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "230.26", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          lokace: "—", comment: "", historie: [],
-          cams: [{ ip: "192.168.230.26", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "230.28", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          lokace: "—", comment: "", historie: [],
-          cams: [{ ip: "192.168.230.28", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "230.29", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          lokace: "—", comment: "", historie: [],
-          cams: [{ ip: "192.168.230.29", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "230.43", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          lokace: "—", comment: "", historie: [],
-          cams: [{ ip: "192.168.230.43", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "230.44", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          lokace: "—", comment: "", historie: [],
-          cams: [{ ip: "192.168.230.44", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "230.45", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          lokace: "—", comment: "", historie: [],
-          cams: [{ ip: "192.168.230.45", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "230.46", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          lokace: "—", comment: "", historie: [],
-          cams: [{ ip: "192.168.230.46", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] },
-        { num: "230.55", typ: "lokalni", vpn: null, nvr: "nvr_fc", mk_status: "online", mk_expected: "run",
-          lokace: "—", comment: "", historie: [],
-          cams: [{ ip: "192.168.230.55", mac: "", model: "", ip_typ: "static", status: "online", expected: "run" }] }
-    ]
-};
+let DATA = { timestamp: null, nvr: [], vpn_servers: [], boxes: [], collection: null };
 
 // ============================================================
 // LOGIKA
@@ -601,6 +336,18 @@ function toggleBox(key) {
 function render() {
     const el = document.getElementById('content');
     let h = '';
+
+    // Pokud nejsou data, zobraz loading
+    if (!DATA.timestamp) {
+        document.getElementById('cnt-ok').textContent = '—';
+        document.getElementById('cnt-problem').textContent = '—';
+        document.getElementById('cnt-off').textContent = '—';
+        document.getElementById('cnt-nevy').textContent = '—';
+        document.getElementById('cnt-tunnels').textContent = '—';
+        document.getElementById('last-update').textContent = 'nacitam...';
+        el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#64748b;font-size:1.1em">Nacitam data ze status.json...</div>';
+        return;
+    }
 
     // Spocitej stavy
     let cntProblem = 0, cntOk = 0, cntOff = 0, cntNevy = 0;
@@ -1104,8 +851,6 @@ function fmtTime(iso) {
 // ============================================================
 // NACITANI DAT — fetch status.json + auto-refresh
 // ============================================================
-let dataSource = 'hardcoded'; // 'hardcoded' nebo 'live'
-
 async function loadLiveData() {
     try {
         const resp = await fetch('status.json?t=' + Date.now());
@@ -1129,7 +874,6 @@ async function loadLiveData() {
             });
         }
         DATA = live;
-        dataSource = 'live';
         render();
         return true;
     } catch (e) {
@@ -1149,15 +893,22 @@ function renderCollectionBanner() {
     });
     return `<div style="display:flex;gap:16px;align-items:center;padding:6px 0;font-size:0.82em;color:#64748b;margin-bottom:8px">
         <span>Zdroje:</span> ${items.join(' ')}
-        ${dataSource === 'hardcoded' ? '<span style="color:#f59e0b">(offline data)</span>' : ''}
+        <span style="color:#64748b;font-size:0.9em">${fmtTime(DATA.timestamp)}</span>
     </div>`;
 }
 
-// Vykresli hned s hardcoded daty
+// Zobraz loading stav
 render();
 
-// Pak zkus nacist live data (prepise hardcoded)
-loadLiveData();
+// Nacti live data ze status.json
+loadLiveData().then(ok => {
+    if (!ok) {
+        document.getElementById('content').innerHTML =
+            '<div style="text-align:center;padding:60px 20px;color:#ef4444;font-size:1.1em">' +
+            'Nelze nacist status.json<br><span style="font-size:0.8em;color:#64748b">Zkontrolujte ze soubor existuje na serveru</span></div>';
+        document.getElementById('last-update').textContent = 'chyba';
+    }
+});
 
 // Auto-refresh kazdych 15 min
 setInterval(loadLiveData, 15 * 60 * 1000);
