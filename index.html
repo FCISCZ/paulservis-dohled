@@ -589,29 +589,35 @@ function renderNVR(nvr) {
 
     if (nvr.snmp) {
         const s = nvr.snmp;
-        const ad = s.disks.filter(d => d.status === 'aktivni');
-        h += `<div class="nvr-meta">
-            <span><span class="nm-lbl">Model:</span> ${s.model}</span>
-            <span><span class="nm-lbl">FW:</span> ${s.fw}</span>
-        </div>`;
-        h += `<div class="disk-info">Disky: ${ad.length}/${s.disks.length} slotu — ${s.capacity_tb} TB celkem (kazdy ${ad.length > 0 ? ad[0].tb : '?'} TB, cyklicky zapis)</div>`;
-        let slots = '';
-        s.disks.forEach(d => {
-            const isA = d.status === 'aktivni';
-            let popup = `<div class="dp-title">Slot ${d.id}</div>`;
-            if (isA) {
-                popup += `<div class="dp-row"><span class="dp-lbl">Stav</span><span class="dp-val" style="color:#22c55e">aktivni</span></div>`;
-                popup += `<div class="dp-row"><span class="dp-lbl">Kapacita</span><span class="dp-val">${d.tb} TB</span></div>`;
-                popup += `<div class="dp-row"><span class="dp-lbl">Rezim</span><span class="dp-val">cyklicky zapis</span></div>`;
-                popup += `<div class="dp-row"><span class="dp-lbl">S/N</span><span class="dp-val" style="color:#475569">neni v SNMP</span></div>`;
-                popup += `<div class="dp-row"><span class="dp-lbl">Teplota</span><span class="dp-val" style="color:#475569">neni v SNMP</span></div>`;
-            } else {
-                popup += `<div class="dp-row"><span class="dp-lbl">Stav</span><span class="dp-val" style="color:#475569">prazdny slot</span></div>`;
-            }
-            slots += `<span class="disk-slot ${isA ? 'active' : 'empty'}">${d.id}<span class="disk-popup">${popup}</span></span>`;
-        });
-        h += `<div class="disk-slots">${slots}</div>`;
-        h += `<div class="snmp-ts">SNMP: ${s.ip} / ${fmtTime(s.snmp_time)}</div>`;
+        if (s.model) {
+            h += `<div class="nvr-meta">
+                <span><span class="nm-lbl">Model:</span> ${s.model}</span>
+                ${s.fw ? `<span><span class="nm-lbl">FW:</span> ${s.fw}</span>` : ''}
+            </div>`;
+        }
+        if (s.disks && s.disks.length > 0) {
+            const ad = s.disks.filter(d => d.status === 'aktivni');
+            h += `<div class="disk-info">Disky: ${ad.length}/${s.disks.length} slotu — ${s.capacity_tb} TB celkem (kazdy ${ad.length > 0 ? ad[0].tb : '?'} TB, cyklicky zapis)</div>`;
+            let slots = '';
+            s.disks.forEach(d => {
+                const isA = d.status === 'aktivni';
+                let popup = `<div class="dp-title">Slot ${d.id}</div>`;
+                if (isA) {
+                    popup += `<div class="dp-row"><span class="dp-lbl">Stav</span><span class="dp-val" style="color:#22c55e">aktivni</span></div>`;
+                    popup += `<div class="dp-row"><span class="dp-lbl">Kapacita</span><span class="dp-val">${d.tb} TB</span></div>`;
+                    popup += `<div class="dp-row"><span class="dp-lbl">Rezim</span><span class="dp-val">cyklicky zapis</span></div>`;
+                    popup += `<div class="dp-row"><span class="dp-lbl">S/N</span><span class="dp-val" style="color:#475569">neni v SNMP</span></div>`;
+                    popup += `<div class="dp-row"><span class="dp-lbl">Teplota</span><span class="dp-val" style="color:#475569">neni v SNMP</span></div>`;
+                } else {
+                    popup += `<div class="dp-row"><span class="dp-lbl">Stav</span><span class="dp-val" style="color:#475569">prazdny slot</span></div>`;
+                }
+                slots += `<span class="disk-slot ${isA ? 'active' : 'empty'}">${d.id}<span class="disk-popup">${popup}</span></span>`;
+            });
+            h += `<div class="disk-slots">${slots}</div>`;
+        }
+        if (s.snmp_time) {
+            h += `<div class="snmp-ts">SNMP: ${s.ip || '?'} / ${fmtTime(s.snmp_time)}</div>`;
+        }
     }
     h += '</div>';
     return h;
