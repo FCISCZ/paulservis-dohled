@@ -1,0 +1,1166 @@
+{
+  "timestamp": "2026-02-16T22:05:20.176035+00:00",
+  "check_interval_min": 15,
+  "collection": {
+    "vpn1": {
+      "status": "ok",
+      "error": "",
+      "time": "2026-02-16T22:05:20.176035+00:00"
+    },
+    "vpn5": {
+      "status": "ok",
+      "error": "",
+      "time": "2026-02-16T22:05:20.176035+00:00"
+    },
+    "mk_netflix": {
+      "status": "error",
+      "error": "ssh: connect to host 93.99.172.72 port 2222: Connection timed out",
+      "time": "2026-02-16T22:05:20.176035+00:00"
+    }
+  },
+  "nvr": [
+    {
+      "id": "nvr_fc",
+      "name": "NVR Paulservis",
+      "role": "hlavni",
+      "ip": "93.99.200.99",
+      "local_ip": "192.168.50.253",
+      "vpn": "vpn1",
+      "status": "online",
+      "streams": null,
+      "snmp": {
+        "snmp_time": "2026-02-16T22:05:20.165222+00:00",
+        "disk_raw": "iso.3.6.1.2.1.25.2.3.1 = No Such Object available on this agent at this OID"
+      },
+      "snmp_status": "vycteno"
+    },
+    {
+      "id": "nvr_stavba",
+      "name": "NVR Stavba",
+      "role": "hlavni",
+      "ip": "93.99.200.100",
+      "local_ip": "192.168.50.52",
+      "vpn": "vpn5",
+      "status": "online",
+      "streams": null,
+      "snmp_status": "neni"
+    },
+    {
+      "id": "nvr_chab",
+      "name": "NVR Chabarovice",
+      "role": "hlavni",
+      "ip": "93.99.200.102",
+      "local_ip": "192.168.50.51",
+      "vpn": "vpn5",
+      "status": "online",
+      "streams": null,
+      "snmp_status": "neni"
+    },
+    {
+      "id": "nvr_ext",
+      "name": "NVR Externi",
+      "role": "vedlejsi",
+      "ip": "109.202.68.102",
+      "local_ip": "—",
+      "vpn": "vpn5",
+      "status": "online",
+      "streams": null,
+      "snmp_status": "neni"
+    }
+  ],
+  "vpn_servers": [
+    {
+      "id": "vpn1",
+      "name": "hotelak VPN 01",
+      "ip": "93.99.200.101",
+      "port": 50022,
+      "model": "CCR2004-16G-2S+",
+      "bridge_ip": "192.168.50.254/24",
+      "status": "online",
+      "last_check": "2026-02-16T22:05:20.176035+00:00",
+      "check_interval_min": 15,
+      "routeros": "7.13",
+      "uptime": "1w2d8h38m20s",
+      "identity": "hotelak VPN 01",
+      "dhcp": {
+        "pool_start": "192.168.50.150",
+        "pool_end": "192.168.50.250",
+        "leases": [
+          {
+            "address": "SS",
+            "mac_address": "MAC-ADDRESS",
+            "host_name": "HOS",
+            "server": "T-NAME",
+            "status": "SERVE",
+            "last_seen": "R  STATUS  LAST-SEEN"
+          },
+          {
+            "address": "68.50.180",
+            "mac_address": "74:4D:28:3B",
+            "host_name": ":A3:4E  VPN",
+            "server": "_client_",
+            "status": "1  dhcp1",
+            "last_seen": "bound   2h23m12s"
+          },
+          {
+            "address": "68.50.189",
+            "mac_address": "6C:F1:7E:85",
+            "host_name": ":F9:16",
+            "status": "dhcp1",
+            "last_seen": "bound   11h46m15s"
+          }
+        ]
+      }
+    },
+    {
+      "id": "vpn5",
+      "name": "hotelak VPN 02",
+      "ip": "93.99.200.105",
+      "port": 50022,
+      "model": "RB1100AHx4 Dude Ed.",
+      "bridge_ip": "192.168.50.254/24",
+      "status": "online",
+      "last_check": "2026-02-16T22:05:20.176035+00:00",
+      "check_interval_min": 15,
+      "routeros": "7.12.1",
+      "uptime": "1w2d8h38m7s",
+      "identity": "hotelak VPN 02",
+      "dhcp": {
+        "pool_start": "192.168.50.150",
+        "pool_end": "192.168.50.250",
+        "leases": [
+          {
+            "address": "SS",
+            "mac_address": "MAC-ADDRESS",
+            "status": "SERVER",
+            "last_seen": "STATUS  LAST-SEEN"
+          },
+          {
+            "address": "68.50.196",
+            "mac_address": "6C:F1:7E:D3",
+            "server": ":2E:B0",
+            "status": "dhcp1",
+            "last_seen": "bound   9h35m41s"
+          },
+          {
+            "address": "68.50.185",
+            "mac_address": "C4:79:05:82",
+            "server": ":D2:06",
+            "status": "dhcp1",
+            "last_seen": "bound   7h7m7s"
+          }
+        ]
+      }
+    }
+  ],
+  "boxes": [
+    {
+      "num": "03",
+      "vpn": "vpn1",
+      "nvr": "nvr_fc",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h13m53s",
+      "client_ip": "46.135.87.153",
+      "lokace": "horeni",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.50.203",
+          "mac": "",
+          "model": "IPC2124SR3",
+          "ip_typ": "dhcp",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "05",
+      "vpn": "vpn1",
+      "nvr": "nvr_fc",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m36s",
+      "client_ip": "46.135.21.40",
+      "lokace": "garaze MP",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.50.205",
+          "mac": "",
+          "model": "IPC2124SR3",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        },
+        {
+          "ip": "192.168.50.215",
+          "mac": "",
+          "model": "IPC2322LB",
+          "ip_typ": "dhcp",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "09",
+      "vpn": "vpn1",
+      "nvr": "nvr_fc",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "5d10h30m41s",
+      "client_ip": "46.135.88.50",
+      "lokace": "horeni",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.50.248",
+          "mac": "",
+          "model": "IPC2124SR3",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "12",
+      "vpn": "vpn1",
+      "nvr": "nvr_fc",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m37s",
+      "client_ip": "46.135.95.3",
+      "lokace": "tvorba SW sasa",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.50.212",
+          "mac": "",
+          "model": "IPC2322LB",
+          "ip_typ": "dhcp",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "24",
+      "vpn": "vpn1",
+      "nvr": "nvr_fc",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "3d22h56m19s",
+      "client_ip": "46.135.9.212",
+      "lokace": "Usti, Bina",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.50.224",
+          "mac": "",
+          "model": "IPC2124SR3",
+          "ip_typ": "dhcp",
+          "status": "nevycteno",
+          "expected": "run"
+        },
+        {
+          "ip": "192.168.50.234",
+          "mac": "",
+          "model": "IPC2124SR3",
+          "ip_typ": "dhcp",
+          "status": "nevycteno",
+          "expected": "run"
+        },
+        {
+          "ip": "192.168.50.244",
+          "mac": "",
+          "model": "IPC2322LB",
+          "ip_typ": "dhcp",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "84",
+      "vpn": "vpn1",
+      "nvr": "nvr_fc",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m7s",
+      "client_ip": "46.135.84.139",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.50.184",
+          "mac": "",
+          "model": "IPC2124SR3",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "85",
+      "vpn": "vpn1",
+      "nvr": "nvr_fc",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "5d7h20m24s",
+      "client_ip": "46.135.94.255",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.50.185",
+          "mac": "",
+          "model": "IPC2124SR3",
+          "ip_typ": "dhcp",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "86",
+      "vpn": "vpn1",
+      "nvr": "nvr_fc",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m22s",
+      "client_ip": "46.135.81.212",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.50.186",
+          "mac": "",
+          "model": "IPC2124SR3",
+          "ip_typ": "dhcp",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "87",
+      "vpn": "vpn1",
+      "nvr": "nvr_fc",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m27s",
+      "client_ip": "46.135.7.125",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.50.187",
+          "mac": "",
+          "model": "IPC2124SR3",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "88",
+      "vpn": "vpn1",
+      "nvr": "nvr_fc",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m38s",
+      "client_ip": "46.135.83.16",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.50.188",
+          "mac": "",
+          "model": "IPC2322LB",
+          "ip_typ": "dhcp",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "89",
+      "vpn": "vpn1",
+      "nvr": "nvr_fc",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m34s",
+      "client_ip": "46.135.29.255",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.50.189",
+          "mac": "",
+          "model": "IPC2124SR3",
+          "ip_typ": "dhcp",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "94",
+      "vpn": "vpn1",
+      "nvr": "nvr_fc",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m31s",
+      "client_ip": "46.135.20.124",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.50.194",
+          "mac": "",
+          "model": "IPC2124SR3",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        },
+        {
+          "ip": "192.168.50.195",
+          "mac": "",
+          "model": "IPC2124SR3",
+          "ip_typ": "dhcp",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "02",
+      "vpn": "vpn5",
+      "nvr": "nvr_stavba",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m13s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "04",
+      "vpn": "vpn5",
+      "nvr": "nvr_stavba",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m39s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "07",
+      "vpn": "vpn5",
+      "nvr": "nvr_chab",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m18s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "08",
+      "vpn": "vpn5",
+      "nvr": "nvr_chab",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h13m55s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "24",
+      "vpn": "vpn5",
+      "nvr": "nvr_stavba",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m30s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "25",
+      "vpn": "vpn5",
+      "nvr": "nvr_stavba",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1h47m39s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "28",
+      "vpn": "vpn5",
+      "nvr": "nvr_stavba",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m9s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "86",
+      "vpn": "vpn5",
+      "nvr": "nvr_chab",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "8h27m37s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "87",
+      "vpn": "vpn5",
+      "nvr": "nvr_chab",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1h55m20s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "88",
+      "vpn": "vpn5",
+      "nvr": "nvr_stavba",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m39s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "89",
+      "vpn": "vpn5",
+      "nvr": "nvr_stavba",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h13m31s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "90",
+      "vpn": "vpn5",
+      "nvr": "nvr_stavba",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m25s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "91",
+      "vpn": "vpn5",
+      "nvr": "nvr_stavba",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m25s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "92",
+      "vpn": "vpn5",
+      "nvr": "nvr_stavba",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m29s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "93",
+      "vpn": "vpn5",
+      "nvr": "nvr_chab",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "5d1h36m30s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "95",
+      "vpn": "vpn5",
+      "nvr": "nvr_stavba",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "24m8s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "96",
+      "vpn": "vpn5",
+      "nvr": "nvr_stavba",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "5d2h3m42s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "97",
+      "vpn": "vpn5",
+      "nvr": "nvr_stavba",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m31s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "98",
+      "vpn": "vpn5",
+      "nvr": "nvr_stavba",
+      "mk_status": "online",
+      "mk_expected": "run",
+      "uptime": "1w2d8h37m31s",
+      "client_ip": "",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": []
+    },
+    {
+      "num": "116.46",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "Mojzir",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.117.46",
+          "mac": "6C:F1:7E:8F:AE:CB",
+          "model": "IPC6424SR-X25-VF",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ],
+      "mk_ip": "192.168.116.46",
+      "mk_model": "SXTsq Lite5",
+      "mk_routeros": "6.47.8",
+      "mk_identity": "kamera mojriz"
+    },
+    {
+      "num": "62.26",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "Opeltalova, parkoviste",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.63.26",
+          "mac": "6C:F1:7E:B0:26:9B",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ],
+      "mk_ip": "192.168.62.26",
+      "mk_model": "SXTsq Lite5",
+      "mk_routeros": "6.49.7",
+      "mk_identity": "opeltalova kamera parkoviste"
+    },
+    {
+      "num": "114.46",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "paulservis kamera",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.115.46",
+          "mac": "6C:F1:7E:7C:B4:78",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ],
+      "mk_ip": "192.168.114.46",
+      "mk_model": "SXTsq Lite5",
+      "mk_routeros": "6.47.4",
+      "mk_identity": "paulservis kamera"
+    },
+    {
+      "num": "74.48",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "AVE, parkoviste",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.75.48",
+          "mac": "48:EA:63:ED:C2:2E",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ],
+      "mk_ip": "192.168.74.48",
+      "mk_model": "SXTsq Lite5",
+      "mk_routeros": "6.49.7",
+      "mk_identity": "kamera AVE parkovyste pavel"
+    },
+    {
+      "num": "62.24",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "Seifertova",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.63.24",
+          "mac": "6C:F1:7E:85:F9:1C",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ],
+      "mk_ip": "192.168.62.24",
+      "mk_model": "SXTsq Lite5",
+      "mk_routeros": "6.49.7",
+      "mk_identity": "seifertova kamera pavel"
+    },
+    {
+      "num": "14.38",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "Kovostrot",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.13.38",
+          "mac": "6C:F1:7E:1A:78:A4",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ],
+      "mk_ip": "192.168.14.38",
+      "mk_model": "LHG HP5",
+      "mk_routeros": "6.47.9",
+      "mk_identity": "kamera kovostrot pavel"
+    },
+    {
+      "num": "100.45",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.100.45",
+          "mac": "",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "100.46",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.100.46",
+          "mac": "",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "100.47",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.100.47",
+          "mac": "",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "108.12",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.108.12",
+          "mac": "",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "208.249",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.208.249",
+          "mac": "",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "230.16",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.230.16",
+          "mac": "",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "230.20",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.230.20",
+          "mac": "",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "230.26",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.230.26",
+          "mac": "",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "230.28",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.230.28",
+          "mac": "",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "230.29",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.230.29",
+          "mac": "",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "230.43",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.230.43",
+          "mac": "",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "230.44",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.230.44",
+          "mac": "",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "230.45",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.230.45",
+          "mac": "",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "230.46",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.230.46",
+          "mac": "",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    },
+    {
+      "num": "230.55",
+      "typ": "lokalni",
+      "vpn": null,
+      "nvr": "nvr_fc",
+      "mk_status": "nevycteno",
+      "mk_expected": "run",
+      "lokace": "",
+      "comment": "",
+      "historie": [],
+      "cams": [
+        {
+          "ip": "192.168.230.55",
+          "mac": "",
+          "model": "",
+          "ip_typ": "static",
+          "status": "nevycteno",
+          "expected": "run"
+        }
+      ]
+    }
+  ]
+}
