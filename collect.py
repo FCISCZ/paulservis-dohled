@@ -389,9 +389,9 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
     if all_ping_ips:
         ping_cmds = []
         for ip in all_ping_ips:
-            ping_cmds.append(f':put ">>>{ip}<<<"; /ping {ip} count=5 interval=1')
+            ping_cmds.append(f':put ">>>{ip}<<<"; /ping {ip} count=3 interval=1')
         out, ping_err_raw = ssh_multi(host, port, user, password, ping_cmds,
-                             timeout=max(60, len(all_ping_ips) * 5))
+                             timeout=max(60, len(all_ping_ips) * 4))
         if ping_err_raw:
             ping_err = ping_err_raw
         if out:
@@ -486,10 +486,10 @@ def collect_local(src_cfg, password, local_devices):
     t0 = step_start()
     ping_cmds = []
     for ip in all_ips:
-        ping_cmds.append(f':put ">>>{ip}<<<"; /ping {ip} count=5 interval=1')
+        ping_cmds.append(f':put ">>>{ip}<<<"; /ping {ip} count=3 interval=1')
 
     out, err = ssh_multi(host, port, user, password, ping_cmds,
-                         timeout=max(60, len(all_ips) * 5))
+                         timeout=max(60, len(all_ips) * 4))
     if err:
         step_log(steps, "ping_local", t0, "error",
                  f"SSH {host}:{port}, {len(all_ips)} IP", err)
