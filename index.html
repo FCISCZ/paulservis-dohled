@@ -217,7 +217,7 @@ body {
 /* === FORCE BUTTON === */
 #btn-force { border-color: #f59e0b44; color: #f59e0b; font-size: 0.75em; padding: 3px 10px; }
 #btn-force:hover { border-color: #f59e0b; background: #f59e0b22; }
-#btn-force.running { color: #475569; border-color: #334155; cursor: wait; }
+#btn-force.running { color: #f59e0b; border-color: #f59e0b; cursor: wait; animation: pulse 2s infinite; }
 #btn-force.done { color: #22c55e; border-color: #22c55e44; }
 #btn-force.fail { color: #ef4444; border-color: #ef4444; }
 
@@ -1121,12 +1121,79 @@ function getToken() {
     return token;
 }
 
+let forceTimer = null; // interval pro odpocet
+let forceOldTimestamp = null; // timestamp pred spustenim sberu
+
+function forceReset() {
+    const btn = document.getElementById('btn-force');
+    if (forceTimer) { clearInterval(forceTimer); forceTimer = null; }
+    forceOldTimestamp = null;
+    btn.className = 'btn-sm';
+    btn.textContent = 'Vynutit sber';
+    btn.disabled = false;
+}
+
+function forceCountdown(seconds) {
+    const btn = document.getElementById('btn-force');
+    const startTime = Date.now();
+    const totalSec = seconds;
+    btn.className = 'btn-sm running';
+    btn.disabled = true;
+
+    function tick() {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const remain = Math.max(0, totalSec - elapsed);
+        const min = Math.floor(remain / 60);
+        const sec = remain % 60;
+        btn.textContent = `Sber bezi... ${min}:${String(sec).padStart(2,'0')}`;
+
+        // Kazdych 30s zkus nacist nova data
+        if (elapsed > 30 && elapsed % 20 === 0) {
+            loadLiveData().then(() => {
+                if (forceOldTimestamp && DATA.timestamp && DATA.timestamp !== forceOldTimestamp) {
+                    logFetch('ok', 'Nova data po vynucenem sberu!');
+                    btn.className = 'btn-sm done';
+                    btn.textContent = 'Hotovo — nova data!';
+                    btn.disabled = true;
+                    if (forceTimer) { clearInterval(forceTimer); forceTimer = null; }
+                    setTimeout(forceReset, 5000);
+                }
+            });
+        }
+
+        if (remain <= 0) {
+            // Cas vyprsel, zkus naposledy
+            loadLiveData().then(() => {
+                if (forceOldTimestamp && DATA.timestamp && DATA.timestamp !== forceOldTimestamp) {
+                    btn.className = 'btn-sm done';
+                    btn.textContent = 'Hotovo — nova data!';
+                    logFetch('ok', 'Nova data po vynucenem sberu!');
+                } else {
+                    btn.className = 'btn-sm fail';
+                    btn.textContent = 'Data se nezmenila';
+                    logFetch('error', 'Vynuceny sber — data se nezmenila (mozna selhal)');
+                }
+                btn.disabled = true;
+                setTimeout(forceReset, 5000);
+            });
+            clearInterval(forceTimer);
+            forceTimer = null;
+        }
+    }
+
+    tick();
+    forceTimer = setInterval(tick, 1000);
+}
+
 async function forceCollect() {
     const btn = document.getElementById('btn-force');
+    if (forceTimer) return; // uz bezi
     const token = getToken();
     if (!token) return;
     btn.className = 'btn-sm running';
     btn.textContent = 'Spoustim...';
+    btn.disabled = true;
+    forceOldTimestamp = DATA.timestamp;
     try {
         const resp = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`, {
             method: 'POST',
@@ -1137,28 +1204,25 @@ async function forceCollect() {
             body: JSON.stringify({ ref: 'master' }),
         });
         if (resp.status === 204) {
-            btn.className = 'btn-sm done';
-            btn.textContent = 'Spusteno!';
-            logFetch('ok', 'Vynuceny sber spusten — data za ~60s');
-            setTimeout(() => { btn.className = 'btn-sm'; btn.textContent = 'Vynutit sber'; }, 5000);
-            setTimeout(loadLiveData, 70000);
+            logFetch('ok', 'Vynuceny sber spusten — cekam na data...');
+            forceCountdown(240); // 4 minuty odpocet
         } else if (resp.status === 401 || resp.status === 403) {
             sessionStorage.removeItem('gh_tok');
             btn.className = 'btn-sm fail';
             btn.textContent = 'Spatne heslo';
-            logFetch('error', `Vynuceny sber: HTTP ${resp.status} — zkus znovu`);
-            setTimeout(() => { btn.className = 'btn-sm'; btn.textContent = 'Vynutit sber'; }, 3000);
+            logFetch('error', `Vynuceny sber: HTTP ${resp.status}`);
+            setTimeout(forceReset, 3000);
         } else {
             btn.className = 'btn-sm fail';
             btn.textContent = 'Chyba ' + resp.status;
             logFetch('error', `Vynuceny sber: HTTP ${resp.status}`);
-            setTimeout(() => { btn.className = 'btn-sm'; btn.textContent = 'Vynutit sber'; }, 3000);
+            setTimeout(forceReset, 3000);
         }
     } catch (e) {
         btn.className = 'btn-sm fail';
-        btn.textContent = 'Chyba';
+        btn.textContent = 'Chyba: ' + e.message;
         logFetch('error', `Vynuceny sber: ${e.message}`);
-        setTimeout(() => { btn.className = 'btn-sm'; btn.textContent = 'Vynutit sber'; }, 3000);
+        setTimeout(forceReset, 3000);
     }
 }
 
