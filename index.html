@@ -215,6 +215,32 @@ body {
 
 /* === DEBUG PANEL === */
 /* === FORCE BUTTON === */
+/* === FORCE COLLECT BANNER === */
+.force-banner {
+    background: #1a1a2e;
+    border-bottom: 1px solid #334155;
+    padding: 10px 24px;
+    font-size: 0.85em;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.force-banner .fb-spinner {
+    width: 14px; height: 14px;
+    border: 2px solid #334155;
+    border-top-color: #f59e0b;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.force-banner .fb-text { color: #e2e8f0; }
+.force-banner .fb-detail { color: #64748b; font-family: 'Courier New', monospace; font-size: 0.9em; }
+.force-banner .fb-time { color: #f59e0b; font-family: 'Courier New', monospace; margin-left: auto; }
+.force-banner.done { border-bottom-color: #22c55e44; }
+.force-banner.done .fb-text { color: #22c55e; }
+.force-banner.fail { border-bottom-color: #ef444444; }
+.force-banner.fail .fb-text { color: #ef4444; }
+
 #btn-force { border-color: #f59e0b44; color: #f59e0b; font-size: 0.75em; padding: 3px 10px; }
 #btn-force:hover { border-color: #f59e0b; background: #f59e0b22; }
 #btn-force.running { color: #f59e0b; border-color: #f59e0b; cursor: wait; animation: pulse 2s infinite; }
@@ -272,6 +298,8 @@ body {
     <span class="timestamp">Aktualizace: <span id="last-update"></span></span>
     <button class="btn-sm" id="btn-force" title="Vynutit sber dat (GitHub Actions)">Vynutit sber</button>
 </div>
+
+<div id="force-banner" class="force-banner" style="display:none"></div>
 
 <div class="content" id="content"></div>
 <div id="modal-root"></div>
@@ -1121,108 +1149,188 @@ function getToken() {
     return token;
 }
 
-let forceTimer = null; // interval pro odpocet
-let forceOldTimestamp = null; // timestamp pred spustenim sberu
+// ============================================================
+// FORCE COLLECT — s realnym sledovanim workflow
+// ============================================================
+let forceRunning = false;
+let forceOldTimestamp = null;
+let forceStartTime = null;
+let forceTickTimer = null;
+
+function bannerShow(html, cls) {
+    const b = document.getElementById('force-banner');
+    b.style.display = 'flex';
+    b.className = 'force-banner' + (cls ? ' ' + cls : '');
+    b.innerHTML = html;
+}
+function bannerHide() {
+    document.getElementById('force-banner').style.display = 'none';
+}
+function bannerElapsed() {
+    if (!forceStartTime) return '0:00';
+    const s = Math.floor((Date.now() - forceStartTime) / 1000);
+    return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+}
 
 function forceReset() {
-    const btn = document.getElementById('btn-force');
-    if (forceTimer) { clearInterval(forceTimer); forceTimer = null; }
+    forceRunning = false;
     forceOldTimestamp = null;
+    forceStartTime = null;
+    if (forceTickTimer) { clearInterval(forceTickTimer); forceTickTimer = null; }
+    const btn = document.getElementById('btn-force');
     btn.className = 'btn-sm';
     btn.textContent = 'Vynutit sber';
     btn.disabled = false;
 }
 
-function forceCountdown(seconds) {
+function forceDone(ok, msg) {
+    if (forceTickTimer) { clearInterval(forceTickTimer); forceTickTimer = null; }
     const btn = document.getElementById('btn-force');
-    const startTime = Date.now();
-    const totalSec = seconds;
-    btn.className = 'btn-sm running';
     btn.disabled = true;
+    if (ok) {
+        btn.className = 'btn-sm done';
+        btn.textContent = 'Hotovo!';
+        bannerShow(`<span class="fb-text">Hotovo — ${msg}</span><span class="fb-time">${bannerElapsed()}</span>`, 'done');
+        logFetch('ok', msg);
+    } else {
+        btn.className = 'btn-sm fail';
+        btn.textContent = 'Chyba';
+        bannerShow(`<span class="fb-text">Chyba — ${msg}</span><span class="fb-time">${bannerElapsed()}</span>`, 'fail');
+        logFetch('error', msg);
+    }
+    setTimeout(() => { forceReset(); bannerHide(); }, 8000);
+}
 
-    function tick() {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        const remain = Math.max(0, totalSec - elapsed);
-        const min = Math.floor(remain / 60);
-        const sec = remain % 60;
-        btn.textContent = `Sber bezi... ${min}:${String(sec).padStart(2,'0')}`;
+async function ghApi(path, token) {
+    const r = await fetch('https://api.github.com' + path, {
+        headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' },
+    });
+    if (!r.ok) return null;
+    return r.json();
+}
 
-        // Kazdych 30s zkus nacist nova data
-        if (elapsed > 30 && elapsed % 20 === 0) {
-            loadLiveData().then(() => {
-                if (forceOldTimestamp && DATA.timestamp && DATA.timestamp !== forceOldTimestamp) {
-                    logFetch('ok', 'Nova data po vynucenem sberu!');
-                    btn.className = 'btn-sm done';
-                    btn.textContent = 'Hotovo — nova data!';
-                    btn.disabled = true;
-                    if (forceTimer) { clearInterval(forceTimer); forceTimer = null; }
-                    setTimeout(forceReset, 5000);
-                }
-            });
+async function forcePollWorkflow(token) {
+    // Najdi posledni workflow_dispatch run
+    logFetch('ok', 'Hledam spusteny workflow...');
+    bannerShow(`<span class="fb-spinner"></span><span class="fb-text">Hledam spusteny workflow...</span><span class="fb-time">${bannerElapsed()}</span>`);
+
+    let runId = null;
+    for (let attempt = 0; attempt < 6; attempt++) {
+        await new Promise(r => setTimeout(r, 5000));
+        const data = await ghApi(`/repos/${GH_REPO}/actions/runs?per_page=3&event=workflow_dispatch`, token);
+        if (data && data.workflow_runs && data.workflow_runs.length > 0) {
+            const run = data.workflow_runs[0];
+            const runAge = (Date.now() - new Date(run.created_at)) / 1000;
+            if (runAge < 120) { // max 2 min stary
+                runId = run.id;
+                logFetch('ok', `Workflow #${run.run_number} nalezen (${run.status})`);
+                break;
+            }
+        }
+        bannerShow(`<span class="fb-spinner"></span><span class="fb-text">Cekam na spusteni workflow... (${attempt+1}/6)</span><span class="fb-time">${bannerElapsed()}</span>`);
+    }
+
+    if (!runId) {
+        forceDone(false, 'Workflow se nespustil — zkus znovu');
+        return;
+    }
+
+    // Poll stav workflow
+    let lastStep = '';
+    for (let poll = 0; poll < 40; poll++) { // max ~7 minut
+        await new Promise(r => setTimeout(r, 10000));
+
+        const data = await ghApi(`/repos/${GH_REPO}/actions/runs/${runId}`, token);
+        if (!data) continue;
+
+        const status = data.status;
+        const conclusion = data.conclusion;
+
+        // Zjisti aktualni krok
+        const jobs = await ghApi(`/repos/${GH_REPO}/actions/runs/${runId}/jobs`, token);
+        let currentStep = '';
+        if (jobs && jobs.jobs && jobs.jobs[0]) {
+            const steps = jobs.jobs[0].steps || [];
+            const running = steps.find(s => s.status === 'in_progress');
+            const lastDone = [...steps].reverse().find(s => s.status === 'completed');
+            currentStep = running ? running.name : (lastDone ? lastDone.name : '');
         }
 
-        if (remain <= 0) {
-            // Cas vyprsel, zkus naposledy
-            loadLiveData().then(() => {
-                if (forceOldTimestamp && DATA.timestamp && DATA.timestamp !== forceOldTimestamp) {
-                    btn.className = 'btn-sm done';
-                    btn.textContent = 'Hotovo — nova data!';
-                    logFetch('ok', 'Nova data po vynucenem sberu!');
+        if (currentStep && currentStep !== lastStep) {
+            logFetch('ok', `Workflow krok: ${currentStep}`);
+            lastStep = currentStep;
+        }
+
+        bannerShow(
+            `<span class="fb-spinner"></span>` +
+            `<span class="fb-text">Workflow bezi</span>` +
+            `<span class="fb-detail">${currentStep || status}</span>` +
+            `<span class="fb-time">${bannerElapsed()}</span>`
+        );
+
+        if (status === 'completed') {
+            if (conclusion === 'success') {
+                logFetch('ok', 'Workflow dokoncen uspesne — nacitam nova data...');
+                bannerShow(`<span class="fb-spinner"></span><span class="fb-text">Workflow hotov — nacitam nova data...</span><span class="fb-time">${bannerElapsed()}</span>`);
+                await new Promise(r => setTimeout(r, 5000));
+                await loadLiveData();
+                if (DATA.timestamp && DATA.timestamp !== forceOldTimestamp) {
+                    forceDone(true, 'nova data nactena');
                 } else {
-                    btn.className = 'btn-sm fail';
-                    btn.textContent = 'Data se nezmenila';
-                    logFetch('error', 'Vynuceny sber — data se nezmenila (mozna selhal)');
+                    // Zkus jeste jednou
+                    await new Promise(r => setTimeout(r, 10000));
+                    await loadLiveData();
+                    forceDone(DATA.timestamp !== forceOldTimestamp, DATA.timestamp !== forceOldTimestamp ? 'nova data nactena' : 'workflow ok ale data se nezmenila');
                 }
-                btn.disabled = true;
-                setTimeout(forceReset, 5000);
-            });
-            clearInterval(forceTimer);
-            forceTimer = null;
+            } else {
+                forceDone(false, `workflow skoncil: ${conclusion || 'neznamy vysledek'}`);
+            }
+            return;
         }
     }
 
-    tick();
-    forceTimer = setInterval(tick, 1000);
+    forceDone(false, 'timeout — workflow stale bezi');
 }
 
 async function forceCollect() {
     const btn = document.getElementById('btn-force');
-    if (forceTimer) return; // uz bezi
+    if (forceRunning) return;
     const token = getToken();
     if (!token) return;
+
+    forceRunning = true;
+    forceStartTime = Date.now();
+    forceOldTimestamp = DATA.timestamp;
     btn.className = 'btn-sm running';
     btn.textContent = 'Spoustim...';
     btn.disabled = true;
-    forceOldTimestamp = DATA.timestamp;
+
+    // Odpocet na tlacitku
+    forceTickTimer = setInterval(() => {
+        if (!forceRunning) return;
+        btn.textContent = 'Bezi... ' + bannerElapsed();
+    }, 1000);
+
+    bannerShow(`<span class="fb-spinner"></span><span class="fb-text">Odesilam pozadavek na GitHub...</span><span class="fb-time">0:00</span>`);
+    logFetch('ok', 'Odesilam workflow_dispatch...');
+
     try {
         const resp = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`, {
             method: 'POST',
-            headers: {
-                'Authorization': `token ${token}`,
-                'Accept': 'application/vnd.github.v3+json',
-            },
+            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
             body: JSON.stringify({ ref: 'master' }),
         });
         if (resp.status === 204) {
-            logFetch('ok', 'Vynuceny sber spusten — cekam na data...');
-            forceCountdown(240); // 4 minuty odpocet
+            logFetch('ok', 'Dispatch prijat (HTTP 204) — cekam na workflow...');
+            await forcePollWorkflow(token);
         } else if (resp.status === 401 || resp.status === 403) {
             sessionStorage.removeItem('gh_tok');
-            btn.className = 'btn-sm fail';
-            btn.textContent = 'Spatne heslo';
-            logFetch('error', `Vynuceny sber: HTTP ${resp.status}`);
-            setTimeout(forceReset, 3000);
+            forceDone(false, 'spatne heslo/token (HTTP ' + resp.status + ')');
         } else {
-            btn.className = 'btn-sm fail';
-            btn.textContent = 'Chyba ' + resp.status;
-            logFetch('error', `Vynuceny sber: HTTP ${resp.status}`);
-            setTimeout(forceReset, 3000);
+            forceDone(false, 'HTTP ' + resp.status);
         }
     } catch (e) {
-        btn.className = 'btn-sm fail';
-        btn.textContent = 'Chyba: ' + e.message;
-        logFetch('error', `Vynuceny sber: ${e.message}`);
-        setTimeout(forceReset, 3000);
+        forceDone(false, e.message);
     }
 }
 
