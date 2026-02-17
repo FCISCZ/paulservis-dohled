@@ -490,19 +490,23 @@ def collect_local(src_cfg, password, local_devices):
 # =============================================================================
 
 def collect_nvr_snmp(nvr_cfg, sources, password):
-    """Vycte SNMP data z NVR (Uniview) primym snmpget na verejnou IP.
-    Vraci dict nebo None."""
+    """Vycte SNMP data z NVR (Uniview) pres MK /tool snmp-get.
+    SSH na VPN server → snmp-get na local_ip NVR. Vraci dict nebo None."""
     snmp = nvr_cfg.get("snmp")
     if not snmp:
         return None
 
-    nvr_ip = nvr_cfg.get("ip", "")  # verejna IP
+    nvr_ip = nvr_cfg.get("local_ip", "")
     community = snmp.get("community", "cist")
     if not nvr_ip:
-        print(f"  [NVR {nvr_cfg['id']}] SNMP preskoceno — neni verejna IP")
         return None
 
-    print(f"  [NVR {nvr_cfg['id']}] SNMP {nvr_ip}...")
+    vpn_id = nvr_cfg.get("vpn", "vpn1")
+    src = sources.get(vpn_id)
+    if not src:
+        return None
+
+    print(f"  [NVR {nvr_cfg['id']}] SNMP {nvr_ip} (pres {vpn_id})...")
 
     # Uniview enterprise OIDy
     oids = {
@@ -512,21 +516,28 @@ def collect_nvr_snmp(nvr_cfg, sources, password):
     }
 
     try:
-        data = {"snmp_time": datetime.now(timezone.utc).isoformat(), "ip": nvr_ip}
-        raw = {}
-
+        # Vsechny OIDy pres jeden SSH prikaz
+        cmds = []
         for name, oid in oids.items():
-            result = subprocess.run(
-                ["snmpget", "-v2c", "-c", community, "-t", "5", "-r", "1", nvr_ip, oid],
-                capture_output=True, text=True, timeout=15
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                # snmpget vraci: iso.3.6.1... = STRING: "hodnota"
-                out = result.stdout.strip()
-                # Vytahni hodnotu za "STRING: " nebo "= "
-                m = re.search(r'=\s*\S+:\s*"?(.*?)"?\s*$', out)
-                if m:
-                    raw[name] = m.group(1)
+            cmds.append(f':put ">>>{name}<<<"; :put [/tool snmp-get address={nvr_ip} community={community} oid={oid} as-value]')
+
+        out, err = ssh_multi(src["host"], src["port"], src["user"], password,
+                             cmds, timeout=30)
+        if err or not out:
+            print(f"  [NVR {nvr_cfg['id']}] SNMP nedostupne: {err or 'prazdny vystup'}")
+            return None
+
+        data = {"snmp_time": datetime.now(timezone.utc).isoformat(), "ip": nvr_ip}
+
+        # Parsuj vysledky — rozdel podle markeru
+        chunks = re.split(r">>>([\w]+)<<<", out)
+        raw = {}
+        for i in range(1, len(chunks) - 1, 2):
+            # Vytahni value= z as-value vystupu
+            chunk = chunks[i + 1]
+            m = re.search(r"value=(.*)", chunk)
+            if m:
+                raw[chunks[i]] = m.group(1).strip()
 
         if not raw:
             print(f"  [NVR {nvr_cfg['id']}] SNMP nedostupne")
