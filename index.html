@@ -417,11 +417,6 @@ function render() {
         document.getElementById('last-update').textContent = 'nacitam...';
         el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#64748b;font-size:1.1em">Nacitam data ze status.json...</div>' + safeRender(() => renderDebugPanel(), 'debug');
         updateDebugButton();
-        document.getElementById('debug-toggle').addEventListener('click', () => {
-            debugOpen = !debugOpen;
-            const dp = document.getElementById('debug-panel');
-            if (dp) dp.classList.toggle('open', debugOpen);
-        });
         return;
     }
 
@@ -503,13 +498,6 @@ function render() {
     el.querySelectorAll('.sort-btn').forEach(x =>
         x.addEventListener('click', () => { activeSort = x.dataset.sort; render(); })
     );
-
-    // Debug toggle
-    document.getElementById('debug-toggle').addEventListener('click', () => {
-        debugOpen = !debugOpen;
-        const dp = document.getElementById('debug-panel');
-        if (dp) dp.classList.toggle('open', debugOpen);
-    });
 
     renderModal();
 }
@@ -1146,7 +1134,7 @@ async function forceCollect() {
                 'Authorization': `token ${token}`,
                 'Accept': 'application/vnd.github.v3+json',
             },
-            body: JSON.stringify({ ref: 'main' }),
+            body: JSON.stringify({ ref: 'master' }),
         });
         if (resp.status === 204) {
             btn.className = 'btn-sm done';
@@ -1175,6 +1163,11 @@ async function forceCollect() {
 }
 
 document.getElementById('btn-force').addEventListener('click', forceCollect);
+document.getElementById('debug-toggle').addEventListener('click', () => {
+    debugOpen = !debugOpen;
+    const dp = document.getElementById('debug-panel');
+    if (dp) dp.classList.toggle('open', debugOpen);
+});
 
 // Zobraz loading stav
 render();
