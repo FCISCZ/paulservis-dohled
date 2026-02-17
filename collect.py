@@ -17,7 +17,29 @@ import re
 import os
 import sys
 import argparse
+import time
 from datetime import datetime, timezone
+
+
+# =============================================================================
+# STEP LOG — zaznamenava co se delalo, jak dlouho, co selhalo
+# =============================================================================
+
+def step_start():
+    """Vraci casovou znacku pro mereni trvani kroku."""
+    return time.monotonic()
+
+
+def step_log(steps, name, t0, status="ok", detail="", error=""):
+    """Prida krok do logu s trvanim."""
+    steps.append({
+        "step": name,
+        "status": status,
+        "duration_s": round(time.monotonic() - t0, 2),
+        "time": datetime.now(timezone.utc).isoformat(),
+        "detail": detail,
+        "error": error,
+    })
 
 
 # =============================================================================
@@ -213,21 +235,25 @@ def parse_ping(output):
 
 def collect_vpn_server(src_cfg, password, vpn_boxes):
     """Sebere data z jednoho VPN serveru (VPN1 nebo VPN5).
-    Vraci (server_data, boxes_updates, error).
+    Vraci (server_data, boxes_updates, error, steps).
     """
     host = src_cfg["host"]
     port = src_cfg["port"]
     user = src_cfg["user"]
     src_id = src_cfg.get("_id", "?")
+    steps = []
 
     print(f"  [{src_id}] Pripojuji na {host}:{port}...")
 
     # 1. System info
+    t0 = step_start()
     out, err = ssh_cmd(host, port, user, password,
                        "/system identity print; :put \"===SEP===\"; /system resource print")
     if err:
+        step_log(steps, "system_info", t0, "error",
+                 f"SSH {host}:{port}", err)
         print(f"  [{src_id}] CHYBA: {err}")
-        return None, {}, err
+        return None, {}, err, steps
 
     parts = out.split("===SEP===") if out else ["", ""]
     identity = parse_identity(parts[0]) if len(parts) > 0 else ""
@@ -240,16 +266,22 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
         "uptime": resource.get("uptime", ""),
         "board_name": resource.get("board_name", ""),
     }
+    step_log(steps, "system_info", t0, "ok",
+             f"{identity}, uptime {server['uptime']}")
     print(f"  [{src_id}] Online — {identity}, uptime {server['uptime']}")
 
     # 2. L2TP peers
+    t0 = step_start()
     out, err = ssh_cmd(host, port, user, password,
                        "/interface l2tp-server print")
     peers = parse_l2tp_peers(out) if out else []
+    step_log(steps, "l2tp_peers", t0,
+             "ok" if not err else "error",
+             f"{len(peers)} peeru",
+             err or "")
     print(f"  [{src_id}] L2TP peeru: {len(peers)}")
 
-    # Mapuj peers na cisla boxu: <l2tp-ppp_cam_03> nebo ppp_cam_03 → "03"
-    # Taky zkus USER sloupec
+    # Mapuj peers na cisla boxu
     peer_map = {}
     for p in peers:
         num = None
@@ -263,10 +295,10 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
             peer_map[num] = p
 
     # 3. DHCP leases
+    t0 = step_start()
     out, err = ssh_cmd(host, port, user, password,
                        "/ip dhcp-server lease print")
     leases = parse_dhcp_leases(out) if out else []
-    # Normalizuj nazvy poli DHCP lease pro dashboard
     normalized_leases = []
     for l in leases:
         normalized_leases.append({
@@ -277,15 +309,19 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
             "expires": l.get("expires_after", ""),
         })
     server["dhcp_leases"] = normalized_leases
+    step_log(steps, "dhcp_leases", t0,
+             "ok" if not err else "error",
+             f"{len(leases)} lease",
+             err or "")
     print(f"  [{src_id}] DHCP lease: {len(leases)}")
 
-    # 4. Zjisti IP za tunely (bridge host + ARP → automaticky objevi kamery)
-    out_bh, _ = ssh_cmd(host, port, user, password,
+    # 4. Bridge host + ARP → auto-discovery kamer
+    t0 = step_start()
+    out_bh, err_bh = ssh_cmd(host, port, user, password,
                         "/interface bridge host print", timeout=15)
-    out_arp, _ = ssh_cmd(host, port, user, password,
+    out_arp, err_arp = ssh_cmd(host, port, user, password,
                          "/ip arp print where interface=bridge1", timeout=15)
 
-    # Parsuj ARP → mac→ip mapa
     arp_mac_to_ip = {}
     if out_arp:
         for line in out_arp.strip().split("\n"):
@@ -293,11 +329,9 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
             if m:
                 arp_mac_to_ip[m.group(2).upper()] = m.group(1)
 
-    # Parsuj bridge host → tunel→set(mac)
-    tunnel_macs = {}  # "<l2tp-ppp_cam_XX>" → set of MACs
+    tunnel_macs = {}
     if out_bh:
         for line in out_bh.strip().split("\n"):
-            # Match MAC + interface (l2tp nebo pptp)
             m = re.search(r"([0-9A-Fa-f:]{17})\s+(<(?:l2tp|pptp)-ppp_cam_\d+>)", line)
             if m:
                 mac = m.group(1).upper()
@@ -306,11 +340,9 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
                     tunnel_macs[iface] = set()
                 tunnel_macs[iface].add(mac)
 
-    # Pro kazdy box: box IP je znama (50.XX), zbytek MAC→IP = kamery
-    tunnel_cameras = {}  # "03" → list of camera IPs
+    tunnel_cameras = {}
     for box in vpn_boxes:
         num = box["num"]
-        # Zkus vsechny formaty: l2tp/pptp, s nulou i bez (cam_03 i cam_3)
         iface_candidates = [
             f"<l2tp-ppp_cam_{num}>", f"<l2tp-ppp_cam_{int(num)}>",
             f"<pptp-ppp_cam_{num}>", f"<pptp-ppp_cam_{int(num)}>",
@@ -330,9 +362,19 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
         tunnel_cameras[num] = sorted(cam_ips)
 
     discovered = sum(len(v) for v in tunnel_cameras.values())
+    disc_err = ""
+    if err_bh:
+        disc_err += f"bridge: {err_bh} "
+    if err_arp:
+        disc_err += f"arp: {err_arp}"
+    step_log(steps, "discovery", t0,
+             "ok" if not disc_err else "error",
+             f"{discovered} kamer, {len(arp_mac_to_ip)} ARP zaznamu",
+             disc_err)
     print(f"  [{src_id}] Objeveno kamer za boxy: {discovered}")
 
-    # 5. Ping vsechno — MK boxy + kamery za nimi
+    # 5. Ping vsechno
+    t0 = step_start()
     all_ping_ips = []
     for box in vpn_boxes:
         mk_ip = f"192.168.50.{int(box['num'])}"
@@ -341,12 +383,17 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
             all_ping_ips.append(cam_ip)
 
     ping_alive = {}
+    ping_err = ""
+    mk_alive = 0
+    cam_alive = 0
     if all_ping_ips:
         ping_cmds = []
         for ip in all_ping_ips:
-            ping_cmds.append(f':put ">>>{ip}<<<"; /ping {ip} count=1 interval=1')
-        out, err = ssh_multi(host, port, user, password, ping_cmds,
-                             timeout=max(30, len(all_ping_ips) * 3))
+            ping_cmds.append(f':put ">>>{ip}<<<"; /ping {ip} count=5 interval=1')
+        out, ping_err_raw = ssh_multi(host, port, user, password, ping_cmds,
+                             timeout=max(60, len(all_ping_ips) * 5))
+        if ping_err_raw:
+            ping_err = ping_err_raw
         if out:
             chunks = re.split(r">>>([\d.]+)<<<", out)
             for i in range(1, len(chunks) - 1, 2):
@@ -360,6 +407,11 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
         print(f"  [{src_id}] MK boxy ping: {mk_alive}/{len(vpn_boxes)} zije")
         print(f"  [{src_id}] Kamery ping: {cam_alive}/{discovered} zije")
 
+    step_log(steps, "ping", t0,
+             "ok" if not ping_err else "error",
+             f"{len(all_ping_ips)} IP, MK {mk_alive}/{len(vpn_boxes)}, kam {cam_alive}/{discovered}",
+             ping_err)
+
     # 6. Sestav box updates
     box_updates = {}
     for box in vpn_boxes:
@@ -368,13 +420,12 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
         mk_ip = f"192.168.50.{int(num)}"
         ping_ok = ping_alive.get(mk_ip)
 
-        # Status: L2TP tunel aktivni A ping OK = online
         if peer and peer.get("running", False):
             status = "online"
         elif peer:
-            status = "online"  # tunel existuje i kdyz neni running
+            status = "online"
         elif ping_ok:
-            status = "online"  # neni v L2TP listu ale pingne
+            status = "online"
         else:
             status = "offline"
 
@@ -384,7 +435,6 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
             "client_ip": peer.get("client_address", "") if peer else "",
         }
 
-        # Kamery — automaticky objevene z bridge host + ARP
         cam_updates = []
         discovered_cam_ips = tunnel_cameras.get(num, [])
         if discovered_cam_ips:
@@ -395,7 +445,6 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
                     "status": "online" if cam_ping else "offline" if cam_ping is False else "nevycteno",
                 })
         else:
-            # Zadne kamery objeveny — pouzij config (pokud jsou)
             for cam in box.get("cams", []):
                 cam_updates.append({
                     "ip": cam.get("ip", ""),
@@ -404,7 +453,7 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
         update["cam_statuses"] = cam_updates
         box_updates[f"{box['vpn']}_{num}"] = update
 
-    return server, box_updates, None
+    return server, box_updates, None, steps
 
 
 # =============================================================================
@@ -412,10 +461,11 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
 # =============================================================================
 
 def collect_local(src_cfg, password, local_devices):
-    """Pingne lokalni zarizeni pres MK_netflix. Vraci (device_updates, error)."""
+    """Pingne lokalni zarizeni pres MK_netflix. Vraci (device_updates, error, steps)."""
     host = src_cfg["host"]
     port = src_cfg["port"]
     user = src_cfg["user"]
+    steps = []
 
     print(f"  [mk_netflix] Pripojuji na {host}:{port}...")
 
@@ -429,18 +479,22 @@ def collect_local(src_cfg, password, local_devices):
                 all_ips.append(cam["ip"])
 
     if not all_ips:
-        return {}, None
+        step_log(steps, "ping_local", step_start(), "ok", "zadne IP k pingnuti")
+        return {}, None, steps
 
     # Ping vsechny v jedne SSH session
+    t0 = step_start()
     ping_cmds = []
     for ip in all_ips:
-        ping_cmds.append(f':put ">>>{ip}<<<"; /ping {ip} count=1 interval=1')
+        ping_cmds.append(f':put ">>>{ip}<<<"; /ping {ip} count=5 interval=1')
 
     out, err = ssh_multi(host, port, user, password, ping_cmds,
-                         timeout=max(30, len(all_ips) * 3))
+                         timeout=max(60, len(all_ips) * 5))
     if err:
+        step_log(steps, "ping_local", t0, "error",
+                 f"SSH {host}:{port}, {len(all_ips)} IP", err)
         print(f"  [mk_netflix] CHYBA: {err}")
-        return {}, err
+        return {}, err, steps
 
     # Parsuj vysledky
     ip_alive = {}
@@ -452,6 +506,8 @@ def collect_local(src_cfg, password, local_devices):
             ip_alive[ip] = parse_ping(ping_out)
 
     alive_count = sum(1 for v in ip_alive.values() if v)
+    step_log(steps, "ping_local", t0, "ok",
+             f"{alive_count}/{len(all_ips)} zije")
     print(f"  [mk_netflix] Lokalni: {alive_count}/{len(all_ips)} zije")
 
     # Sestav updates
@@ -465,7 +521,6 @@ def collect_local(src_cfg, password, local_devices):
             alive = ip_alive.get(mk_ip)
             update["mk_status"] = "online" if alive else ("offline" if alive is False else "nevycteno")
         else:
-            # Standalone kamera — stav podle prvni kamery
             first_cam = dev["cams"][0] if dev.get("cams") else None
             if first_cam:
                 alive = ip_alive.get(first_cam["ip"])
@@ -482,7 +537,7 @@ def collect_local(src_cfg, password, local_devices):
         update["cam_statuses"] = cam_updates
         dev_updates[f"lok_{num}"] = update
 
-    return dev_updates, None
+    return dev_updates, None, steps
 
 
 # =============================================================================
@@ -491,32 +546,31 @@ def collect_local(src_cfg, password, local_devices):
 
 def collect_nvr_snmp(nvr_cfg, sources, password):
     """Vycte SNMP data z NVR (Uniview) pres MK /tool snmp-get.
-    SSH na VPN server → snmp-get na local_ip NVR. Vraci dict nebo None."""
+    SSH na VPN server → snmp-get na local_ip NVR. Vraci (dict nebo None, step)."""
     snmp = nvr_cfg.get("snmp")
     if not snmp:
-        return None
+        return None, None
 
     nvr_ip = nvr_cfg.get("local_ip", "")
     community = snmp.get("community", "cist")
     if not nvr_ip:
-        return None
+        return None, None
 
     vpn_id = nvr_cfg.get("vpn", "vpn1")
     src = sources.get(vpn_id)
     if not src:
-        return None
+        return None, None
 
     print(f"  [NVR {nvr_cfg['id']}] SNMP {nvr_ip} (pres {vpn_id})...")
 
-    # Uniview enterprise OIDy
     oids = {
         "devinfo": "1.3.6.1.4.1.25506.20.1.0",
         "disktotal": "1.3.6.1.4.1.25506.20.2.0",
         "diskdetail": "1.3.6.1.4.1.25506.20.3.0",
     }
 
+    t0 = step_start()
     try:
-        # Vsechny OIDy pres jeden SSH prikaz
         cmds = []
         for name, oid in oids.items():
             cmds.append(f':put ">>>{name}<<<"; :put [/tool snmp-get address={nvr_ip} community={community} oid={oid} as-value]')
@@ -524,16 +578,19 @@ def collect_nvr_snmp(nvr_cfg, sources, password):
         out, err = ssh_multi(src["host"], src["port"], src["user"], password,
                              cmds, timeout=30)
         if err or not out:
-            print(f"  [NVR {nvr_cfg['id']}] SNMP nedostupne: {err or 'prazdny vystup'}")
-            return None
+            msg = err or "prazdny vystup"
+            print(f"  [NVR {nvr_cfg['id']}] SNMP nedostupne: {msg}")
+            s = {"step": f"snmp_{nvr_cfg['id']}", "status": "error",
+                 "duration_s": round(time.monotonic() - t0, 2),
+                 "time": datetime.now(timezone.utc).isoformat(),
+                 "detail": f"{nvr_ip} pres {vpn_id}", "error": msg}
+            return None, s
 
         data = {"snmp_time": datetime.now(timezone.utc).isoformat(), "ip": nvr_ip}
 
-        # Parsuj vysledky — rozdel podle markeru
         chunks = re.split(r">>>([\w]+)<<<", out)
         raw = {}
         for i in range(1, len(chunks) - 1, 2):
-            # Vytahni value= z as-value vystupu
             chunk = chunks[i + 1]
             m = re.search(r"value=(.*)", chunk)
             if m:
@@ -541,9 +598,12 @@ def collect_nvr_snmp(nvr_cfg, sources, password):
 
         if not raw:
             print(f"  [NVR {nvr_cfg['id']}] SNMP nedostupne")
-            return None
+            s = {"step": f"snmp_{nvr_cfg['id']}", "status": "error",
+                 "duration_s": round(time.monotonic() - t0, 2),
+                 "time": datetime.now(timezone.utc).isoformat(),
+                 "detail": f"{nvr_ip} pres {vpn_id}", "error": "zadna data v odpovedi"}
+            return None, s
 
-        # DevInfo
         devinfo = raw.get("devinfo", "")
         m = re.search(r"DevModel:\s*(\S+)", devinfo)
         if m:
@@ -555,16 +615,14 @@ def collect_nvr_snmp(nvr_cfg, sources, password):
         if m:
             data["sn"] = m.group(1)
 
-        # Disk celkem
         disktotal = raw.get("disktotal", "")
         m = re.search(r"DiskTotalNum:\s*(\d+)", disktotal)
         if m:
             data["disk_total_num"] = int(m.group(1))
         m = re.search(r"DiskTotalCapacity:\s*(\d+)", disktotal)
         if m:
-            data["capacity_tb"] = round(int(m.group(1)) / 1024 / 1024, 2)  # KB → TB
+            data["capacity_tb"] = round(int(m.group(1)) / 1024 / 1024, 2)
 
-        # Disk detail
         diskdetail = raw.get("diskdetail", "")
         disks = []
         for dm in re.finditer(r"DiskID:\s*(\d+):\s*Disk Space:\s*(\d+)\(KB\).*?Status:\s*(\d+)", diskdetail):
@@ -573,48 +631,61 @@ def collect_nvr_snmp(nvr_cfg, sources, password):
             status_code = int(dm.group(3))
             disks.append({
                 "id": disk_id,
-                "tb": round(space_kb / 1024 / 1024, 2),  # KB → TB
+                "tb": round(space_kb / 1024 / 1024, 2),
                 "status": "aktivni" if status_code == 3 else "prazdny",
             })
         if disks:
             data["disks"] = disks
 
         print(f"  [NVR {nvr_cfg['id']}] SNMP OK — {data.get('model', '?')}, {len(disks)} disku")
-        return data
+        s = {"step": f"snmp_{nvr_cfg['id']}", "status": "ok",
+             "duration_s": round(time.monotonic() - t0, 2),
+             "time": datetime.now(timezone.utc).isoformat(),
+             "detail": f"{data.get('model', '?')}, {len(disks)} disku",
+             "error": ""}
+        return data, s
 
     except Exception as e:
         print(f"  [NVR {nvr_cfg['id']}] SNMP chyba: {e}")
-        return None
+        s = {"step": f"snmp_{nvr_cfg['id']}", "status": "error",
+             "duration_s": round(time.monotonic() - t0, 2),
+             "time": datetime.now(timezone.utc).isoformat(),
+             "detail": f"{nvr_ip} pres {vpn_id}", "error": str(e)}
+        return None, s
 
 
 # =============================================================================
 # HLAVNI LOGIKA — sestav status.json
 # =============================================================================
 
-def build_status(config, vpn_results, local_results, nvr_snmp):
+def build_status(config, vpn_results, local_results, nvr_snmp, run_meta=None):
     """Sestavi status.json z konfigurace + zivych dat."""
     now = datetime.now(timezone.utc).isoformat()
 
     status = {
         "timestamp": now,
         "check_interval_min": 15,
+        "run": run_meta or {},
         "collection": {},
         "nvr": [],
         "vpn_servers": [],
         "boxes": [],
     }
 
-    # --- Collection status ---
-    for src_id, (server_data, box_upd, err) in vpn_results.items():
+    # --- Collection status + kroky ---
+    for src_id, (server_data, box_upd, err, steps) in vpn_results.items():
         status["collection"][src_id] = {
             "status": "ok" if server_data else "error",
             "error": err or "",
             "time": now,
+            "steps": steps,
         }
+    local_updates, local_err, local_steps = local_results
     status["collection"]["mk_netflix"] = {
-        "status": "ok" if local_results[0] else "error",
-        "error": local_results[1] or "",
+        "status": "ok" if local_updates else "error",
+        "error": local_err or "",
         "time": now,
+        "steps": local_steps,
     }
 
     # --- NVR ---
@@ -644,7 +715,7 @@ def build_status(config, vpn_results, local_results, nvr_snmp):
     # --- VPN servers ---
     for src_id in ["vpn1", "vpn5"]:
         src_cfg = config["sources"][src_id]
-        server_data, _, _ = vpn_results.get(src_id, (None, {}, None))
+        server_data, _, _, _ = vpn_results.get(src_id, (None, {}, None, []))
 
         vpn = {
             "id": src_id,
@@ -682,7 +753,7 @@ def build_status(config, vpn_results, local_results, nvr_snmp):
     # --- VPN boxy ---
     all_box_updates = {}
     for src_id in ["vpn1", "vpn5"]:
-        _, box_upd, _ = vpn_results.get(src_id, (None, {}, None))
+        _, box_upd, _, _ = vpn_results.get(src_id, (None, {}, None, []))
         if box_upd:
             all_box_updates.update(box_upd)
 
@@ -734,7 +805,7 @@ def build_status(config, vpn_results, local_results, nvr_snmp):
         status["boxes"].append(box)
 
     # --- Lokalni zarizeni ---
-    dev_updates, _ = local_results
+    dev_updates = local_updates
     for dev_cfg in config.get("local_devices", []):
         key = f"lok_{dev_cfg['num']}"
         upd = (dev_updates or {}).get(key, {})
@@ -809,32 +880,49 @@ def main():
         print("DRY RUN — konec")
         return
 
+    run_start = datetime.now(timezone.utc)
+    run_t0 = time.monotonic()
+
     # --- Sber z VPN serveru ---
     vpn_results = {}
     for src_id in ["vpn1", "vpn5"]:
         src_cfg = config["sources"][src_id]
         src_cfg["_id"] = src_id
         boxes = [b for b in config.get("vpn_boxes", []) if b["vpn"] == src_id]
-        server_data, box_updates, error = collect_vpn_server(src_cfg, password, boxes)
-        vpn_results[src_id] = (server_data, box_updates if server_data else {}, error)
+        server_data, box_updates, error, steps = collect_vpn_server(src_cfg, password, boxes)
+        vpn_results[src_id] = (server_data, box_updates if server_data else {}, error, steps)
 
     # --- Sber lokalnich zarizeni ---
     mk_net_cfg = config["sources"]["mk_netflix"]
     local_devs = config.get("local_devices", [])
-    local_updates, local_err = collect_local(mk_net_cfg, password, local_devs)
-    local_results = (local_updates, local_err)
+    local_updates, local_err, local_steps = collect_local(mk_net_cfg, password, local_devs)
+    local_results = (local_updates, local_err, local_steps)
 
     # --- SNMP NVR ---
     nvr_snmp = {}
+    snmp_steps = []
     for nvr_cfg in config.get("nvr", []):
-        snmp_data = collect_nvr_snmp(nvr_cfg, config["sources"], password)
+        snmp_data, snmp_step = collect_nvr_snmp(nvr_cfg, config["sources"], password)
         if snmp_data:
             nvr_snmp[nvr_cfg["id"]] = snmp_data
+        if snmp_step:
+            snmp_steps.append(snmp_step)
+
+    # --- Run metadata ---
+    run_end = datetime.now(timezone.utc)
+    run_meta = {
+        "started": run_start.isoformat(),
+        "finished": run_end.isoformat(),
+        "duration_s": round(time.monotonic() - run_t0, 2),
+        "runner": "github-actions" if os.environ.get("GITHUB_ACTIONS") else "local",
+        "trigger": os.environ.get("GITHUB_EVENT_NAME", "manual"),
+        "snmp_steps": snmp_steps,
+    }
 
     # --- Sestav a zapis status.json ---
     print()
     print("Sestavuji status.json...")
-    status = build_status(config, vpn_results, local_results, nvr_snmp)
+    status = build_status(config, vpn_results, local_results, nvr_snmp, run_meta)
 
     output_path = args.output
     with open(output_path, "w") as f:

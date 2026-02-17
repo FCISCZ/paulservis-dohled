@@ -57,12 +57,16 @@ nvr:
     ip: "93.99.200.100"
     local_ip: "192.168.50.51"
     vpn: vpn5
+    snmp:
+      community: "cist"
 
   - id: nvr_chab
     name: "NVR Chabarovice"
     ip: "93.99.200.102"
     local_ip: "192.168.50.52"
     vpn: vpn5
+    snmp:
+      community: "cist"
 
 # === VPN BOXY (L2TP tunely pres VPN1/VPN5) ===
 # tunel = ppp_cam_XX → IP 192.168.50.XX

@@ -1,0 +1,323 @@
+CIL: Chraneny dashboard pro online prehled site Paulservis (MK, kamery, VPN)
+PLAN:
+  1. Navrhnout architekturu sber dat → dashboard
+  2. Zalozit GitLab CI pipeline
+  3. Napsat sberny skript (SSH na MK, parsing vystupu)
+  4. Vytvorit staticke HTML dashboard
+  5. Nasadit na Cloudflare Pages + Access
+
+================================================================================
+ZAZNAM #001 - 2026-02-15
+AKCE:   Analyza pozadavku a navrh architektury
+
+  POZADAVEK FC:
+  - Webova stranka chranena loginem (max 10 uzivatelu)
+  - Prehledne zobrazit: MK routery, VPN stav, kamery, IP adresy
+  - Overit co zije a co ne
+  - Rychly online prehled
+
+  SITOVA TOPOLOGIE:
+  - Vsechno v jednom subnetu 192.168.50.0/24
+  - Hlavni MK = VPN server na verejne IP (SSH port 2222)
+  - Za VPN: dalsi MK routery, kamery (Uniview), NVR
+  - Tok videa: kamera → MK (VPN klient) → hlavni MK → NVR
+  - Hlavni MK vidi celou sit
+
+  ARCHITEKTURA (dohodnuta):
+  - GitLab CI scheduled pipeline (kazdych 5 min)
+  - SSH na hlavni MK → RouterOS prikazy → sber dat
+  - Python skript zpracuje → status.json
+  - Git push → Cloudflare Pages (staticke HTML)
+  - Ochrana: Cloudflare Access (email login, free do 50 uzivatelu)
+
+  PROC TAKHLE:
+  - MK zustane router, neskriptuje — jen odpovida na SSH
+  - Veskerá logika v CI (Python) — snadno se upravuje
+  - 179 se nepouziva (nespolehlivy)
+  - Hlavni MK je na verejce → GitLab runner se dostane primo
+
+  OVERENO:
+  - Hlavni MK je dostupny z internetu (SSH port 2222)
+  - MK vidi celou 192.168.50.0/24
+  - Uniview kamery maji ONVIF/HTTP API pro detailnejsi dotazy
+
+STAV: Architektura navrzena, projekt zalozen. Cekame na realizaci.
+
+================================================================================
+ZAZNAM #002 - 2026-02-15
+AKCE:   Prepracovani konceptu — mobilni kamery s kartami
+
+  NOVY POZADAVEK OD FC:
+  - Kamery jsou MOBILNI — cestuji mezi lokacemi a MK routery
+  - Kazda kamera musi mit "kartu" s historii presunu
+  - Napr. "15.2.26 presun na lampu c. 45887" nebo "presun na Sibrka parkoviste"
+  - Vazba kamera↔MK se meni v case (kamera A dnes za MK A, zitra za MK H)
+  - Nektere kamery pevne, nektere cestuji
+  - Dashboard musi byt ZIVY (monitoring) ale i umoznovat ZASAHY (presun kamery)
+  - Historie musi zustat, nemusí byt primo viditelna ale musi existovat
+
+  RESENI:
+  - Dva typy karet: KAMERA (mobilni) a MK ROUTER (stabilni)
+  - Data v YAML souborech v git repu (data/kamery/, data/mk/)
+  - Git historie = automaticky audit trail zmen
+  - Zivy monitoring: GitLab CI kazdych 5 min → status.json
+  - Zasahy: dashboard → GitLab API → commit zmeny do YAML
+
+  TECHNICKE ROZHODNUTI:
+  - SSH (ne API) — funguje na v6 i v7, uz je otevreny port
+  - IPsec prikazy se lisi mezi v6 a v7, skript musi detekovat verzi
+
+STAV: Koncept prepracovan, zapsano v CLAUDE.md.
+
+================================================================================
+ZAZNAM #003 - 2026-02-15
+AKCE:   SSH pruzkum infrastruktury Paulservis — 3 MikroTiky
+
+  PRIPOJENI:
+  - Vsechny 3 MK mely SSH vypnute, FC je zapnul na portu 50022
+  - Pristup: admin/alfa2005, port 50022
+
+  HLAVNI MK (MASTER) — 213.192.1.20
+  - Identity: "hotelak master switch VPN"
+  - Model: RB1100AHx4 Dude Edition, RouterOS v7.13
+  - Role: skalovani a routing, nesahat
+  - Ma za sebou VPN1 a VPN5 (kazdy ma svoji verejku)
+  - Sam nema VPN tunely — jen routuje provoz
+
+  VPN1 — 93.99.200.101
+  - Identity: "hotelak VPN 01"
+  - Model: CCR2004-16G-2S+, RouterOS v7.13
+  - Bridge1 IP: 192.168.50.254/24
+  - L2TP tunely (12): ppp_cam_03, 05, 09, 12, 24, 84, 85, 86, 87, 88, 89, 94
+  - DHCP leases: 2 aktivni
+  - NVR:
+    - NVR FC: 93.99.200.99 (aktivni)
+    - NVR stavba: 93.99.200.100 (disabled)
+    - NVR Prestanov/Chabarovice: 93.99.200.102 (disabled)
+
+  VPN5 — 93.99.200.105
+  - Identity: "hotelak VPN 02"
+  - Model: RB1100AHx4, RouterOS v7.12.1
+  - Bridge1 IP: 192.168.50.254/24
+  - L2TP tunely (19): ppp_cam_02, 04, 07, 08, 24, 25, 28, 86-93, 95-98
+  - DHCP leases: 2 aktivni
+  - WireGuard: 10.20.30.1 (interface wg1)
+  - NVR:
+    - NVR Stavba: 93.99.200.100 (aktivni)
+    - NVR Chabarovice: 93.99.200.102 (aktivni)
+
+  DULEZITE POZNATKY:
+  - Celkem 31 VPN tunelu (12 na VPN1 + 19 na VPN5)
+  - Oba VPN MK maji STEJNOU IP 192.168.50.254 — jsou to ODDELENE site
+  - Cisla kamer se prekryvaji (24, 86, 87, 88, 89 na obou) — jine fyzicke kamery
+  - NVR maji verejna IP z bloku 93.99.200.96/27
+  - Nektere NVR jsou disabled (prepinani mezi VPN servery?)
+  - VPN5 ma navic WireGuard (10.20.30.0/24)
+  - Vsechny MK jsou RouterOS v7 (7.12-7.13)
+
+STAV: Pruzkum dokoncen, infrastruktura zmapovana.
+
+================================================================================
+ZAZNAM #004 - 2026-02-15
+AKCE:   Vizualni prototyp dashboardu
+
+  VYTVORENO:
+  - prototyp.html / index.html — interaktivni HTML dashboard
+  - Repo: https://github.com/FCISCZ/paulservis-dohled
+  - GitHub Pages: https://fciscz.github.io/paulservis-dohled/
+
+  FUNKCE PROTOTYPU:
+  - Dva sloupce: VPN1 (10 boxu) a VPN5 (7 boxu)
+  - Kazdy box = MK klient + kamery za nim (1-4 ks)
+  - NVR karty s poctem napojenych boxu/kamer
+  - Walker (Windows PC pro RDP) jako "ostatni zarizeni"
+  - Planovany stav (run/stop) u MK i kamer:
+    - run + offline = VYPADEK (cervena, pulzuje)
+    - stop + offline = VYPNUTO (seda, OK)
+  - Presun boxu s historii lokaci (modal dialog)
+  - Editace IP kamery (static IP se meni rucne)
+  - Mockup data z realneho pruzkumu (cisla kamer, IP, NVR)
+
+  OPRAVY TOPOLOGIE (dle FC):
+  - Disabled NVR na VPN1 (.100, .102) se presunuly na VPN5
+  - Na VPN1 jsou 2 NVR (FC hlavni + druhe TBD) + Walker
+  - Master MK = skalovatelnost, dalsich VPN MK se prida podle potreby
+
+STAV: Prototyp nasazen, ceka na zpetnou vazbu FC + Pavel.
+
+================================================================================
+ZAZNAM #005 - 2026-02-16
+AKCE:   Sberny skript collect.py + prepojeni dashboardu na ziva data
+
+  VYTVORENO:
+  - /home/fc/prace/paulservis_monitoring/collect.py — sberny skript
+  - /home/fc/prace/paulservis_monitoring/config.yaml — inventar zarizeni
+  - /home/fc/prace/paulservis_monitoring/CLAUDE.md — dokumentace
+
+  CO COLLECT.PY DELA:
+  - SSH na VPN1 (93.99.200.101:50022) a VPN5 (93.99.200.105:50022)
+  - Vycte: identity, resource, L2TP/PPTP tunely, DHCP leases
+  - Ping kazdeho boxu (192.168.50.XX)
+  - AUTO-DISCOVERY KAMER: bridge host tabulka + ARP → zjisti MAC a IP
+    kamer za kazdym boxem (box bridguje L2TP s lokalnim ethernetem)
+  - SSH na MK_netflix (93.99.172.72:2222) jako jump host
+    → ping lokalnich bridgu + kamer
+  - Vystup: status.json
+
+  UCTY PRO MONITORING:
+  - Na VPN1, VPN5 a MK_netflix vytvoren ucet "monitor" (read-only)
+  - Heslo: MonitorRead2026
+  - Prikaz: /user add name=monitor group=read password=MonitorRead2026
+
+  OPRAVY DASHBOARDU (index.html):
+  - Odstranen hardcoded DATA blok (~265 radku fejkovych dat)
+  - Dashboard nacita status.json pres fetch()
+  - safeRender() — chyba jednoho boxu/NVR nezabije celou stranku
+  - Opraveny nazvy DHCP poli (address/ip, mac_address/mac)
+  - "Stari dat: XX min" misto rozbitého "Dalsi za: ~ted"
+
+  OPRAVY COLLECT.PY:
+  - DHCP parser: hlavicka musi zacinat "#" (ne "Columns:")
+  - Interface naming: zkusi l2tp i pptp, padded i unpadded cisla
+  - Bridge host: bez filtru "where !local" (nefunguje pres SSH)
+
+STAV: Skript funguje lokalne, dashboard nacita ziva data z GitHub Pages.
+
+================================================================================
+ZAZNAM #006 - 2026-02-16
+AKCE:   Oprava NVR inventare + SNMP
+
+  INVENTAR NVR (zjisteno z portu, NAT a firewallu na VPN1 a VPN5):
+
+  VPN1 (93.99.200.101):
+    ether6: NVR Paulservis
+      local bridge1: 192.168.50.253
+      druhe rozhrani v FC ISP siti: 192.168.100.241
+      verejna IP: ? (NAT na 192.168.100.241 nekde v FC siti — FC zjisti)
+      SNMP: community=cist, nastaveno
+    ether7: NVR FC
+      local bridge1: 192.168.50.50
+      verejna IP: 93.99.200.99 (NAT na VPN1: .99 → 50.50)
+      SNMP: community=cist, overeno (snmpget na .99 funguje)
+    ether10: Walker PC (Windows, vzdalena plocha)
+      local bridge1: 192.168.50.48
+      RDP pristup: 93.99.200.101:3389 → 50.48:3389 (pres IP VPN1)
+
+  VPN5 (93.99.200.105):
+    ether8: NVR Stavba
+      local bridge1: 192.168.50.51
+      verejna IP: 93.99.200.100 (NAT na VPN5: .100 → 50.51)
+      SNMP: nezapnuto
+    ether9: NVR Chabarovice
+      local bridge1: 192.168.50.52
+      verejna IP: 93.99.200.102 (NAT na VPN5: .102 → 50.52)
+      SNMP: nezapnuto
+    ether10: Walker PC (Windows, vzdalena plocha)
+      local bridge1: 192.168.50.48
+      RDP pristup: 93.99.200.105:3389 → 50.48:3389 (pres IP VPN5)
+
+  SNMP PRISTUP:
+  - Uniview OIDy: 1.3.6.1.4.1.25506.20.{1,2,3}.0
+    - .1.0 = DevName, DevModel, SoftwareVersion, DevSeqNumber
+    - .2.0 = DiskTotalNum, DiskTotalCapacity (v KB)
+    - .3.0 = DiskID, Disk Space (KB), Status (3=aktivni)
+  - MK /tool snmp-get FUNGUJE (neni potreba extra balicek, je v base RouterOS 7)
+  - Pristup: SSH na VPN server → /tool snmp-get address=<local_ip> community=cist oid=<OID> as-value
+  - Vystup as-value: oid=...;type=octet-string;value=<data>
+
+  OVERENO:
+  - NVR Paulservis (50.253 pres VPN1): funguje, community=cist
+    Model NVR516-128, FW NVR-B5101.39.48.250408, 16 slotu, 9 aktivnich disku
+  - NVR FC (50.50 pres VPN1): funguje, community=cist
+    Model NVR302-32E2, FW NVR-B3112.37.40.230614, 2 disky
+  - NVR Stavba/Chabarovice: SNMP nezapnuto
+
+STAV: SNMP funguje na Paulservis i FC pres VPN1 /tool snmp-get.
+
+================================================================================
+ZAZNAM #007 - 2026-02-17
+AKCE:   GitHub Actions — automaticky sber dat kazdych 15 min
+
+  NASTAVENO:
+  - Workflow: .github/workflows/collect.yml
+  - collect.py + config.yaml primo v repu paulservis-dohled
+  - Secret MK_MONITOR_PASS nastaveny na GitHubu
+  - Spousteni: kazdych 15 min (cron) + manualne (workflow_dispatch)
+  - Po sberu: git push status.json zpet do repa
+
+  CO BEZI Z GITHUB ACTIONS:
+  - SSH na VPN1 (93.99.200.101:50022, ucet monitor)
+    → L2TP/PPTP tunely, DHCP, ping boxu, auto-discovery kamer (bridge+ARP)
+  - SSH na VPN5 (93.99.200.105:50022, ucet monitor)
+    → to same
+  - SSH na MK_netflix (93.99.172.72:2222, ucet monitor)
+    → ping lokalnich bridgu a kamer (26/27 zije)
+  - SNMP pres VPN1: NVR Paulservis (50.253) + NVR FC (50.50)
+    → model, firmware, serial, pocet a stav disku
+
+  VYSLEDEK PRVNIHO USPESNEHO RUNU:
+  - VPN1: 12/12 boxu, 17 kamer online
+  - VPN5: 19/19 boxu, 23 kamer online
+  - Lokalni: 26/27 zije (1 offline — kamera 192.168.50.189 na boxu 89)
+  - SNMP: Paulservis OK (NVR516-128, 9/16 disku), FC OK (NVR302-32E2, 2 disky)
+  - Celkem: 51/52 online
+
+  OPRAVY BEHEM NASAZOVANI:
+  - permissions: contents: write — bez toho Actions nemuze pushovat
+  - SNMP prepsano z primeho snmpget na MK /tool snmp-get (pres VPN server)
+    → neni potreba verejna IP pro NVR, staci local_ip
+    → /tool snmp-get je v base RouterOS 7 (neni potreba extra balicek)
+  - Odstraneny prazdne zavorky "()" za jmeny NVR na dashboardu (zbytek po role)
+
+  DASHBOARD:
+  - https://fciscz.github.io/paulservis-dohled/
+  - Data se automaticky aktualizuji kazdych 15 min
+  - "Stari dat" ukazuje jak stara jsou data (zelena/zluta/cervena)
+
+  TODO:
+  - Zapnout SNMP na NVR Stavba a Chabarovice
+  - Zjistit proc kamera 50.189 (box 89, VPN1) je seda/offline
+  - Doplnit lokace u VPN5 boxu v config.yaml (prazdne)
+
+STAV: Automaticky monitoring BEZI. Dashboard zije.
+
+================================================================================
+ZAZNAM #008 - 2026-02-17
+AKCE:   Debug panel, vynuceny sber, oprava pingu, SNMP config
+
+  PROBLEM 1: STARI DAT 133 MIN
+  - Pricina: GitHub Actions cron (*/15) je nespolehlivy — realne bezi 1x za 1-3h
+  - Reseni: cron zmenen na */30 (realistictejsi) + tlacitko "Vynutit sber"
+  - Tlacitko vola GitHub API workflow_dispatch → spusti se okamzite (bez throttlingu)
+  - Token se pta pri prvnim pouziti, uklada do localStorage
+
+  PROBLEM 2: FALESNE VYPADKY
+  - Pricina: ping count=1 — jeden ztraceny paket = falesny alarm
+  - Na mobilnich VPN pres LTE je 5-10% ztrata normalni
+  - Reseni: zvyseno na count=5, staci 1 odpoved z 5 = online
+
+  PROBLEM 3: SNMP NA NVR STAVBA A CHABAROVICE
+  - Pridano snmp: community: "cist" do config.yaml pro oba
+  - Overeno rucne pres SSH na VPN5:
+    - NVR Chabarovice (50.52): FUNGUJE — NVR304-32E2-P16, 2x 3.6TB
+    - NVR Stavba (50.51): NEODPOVIDA — pingne ale SNMP nic (Pavel overi)
+
+  DEBUG PANEL (nova funkce):
+  - Tlacitko DEBUG vpravo dole → rozbaleni panelu
+  - Ukazuje:
+    - Run metadata: kdy se collect.py spustil, jak dlouho, odkud, trigger
+    - Per-source kroky: system_info, l2tp, dhcp, discovery, ping — cas, trvani, chyba
+    - SNMP kroky per NVR
+    - Fetch log stranky: pokusy o nacteni status.json
+  - Cervene pulzovani tlacitka kdyz je chyba
+  - collect.py rozsirem o step-by-step logging (kazdy SSH prikaz loguje cas+trvani+vysledek)
+
+  ZMENY V SOUBORECH:
+  - collect.py: step logging, ping count=5, upravene signatury (vraci steps)
+  - index.html: debug panel, tlacitko vynutit sber, fetch log
+  - config.yaml: SNMP pro nvr_stavba a nvr_chab
+  - collect.yml: cron */30
+
+STAV: Dashboard s debugem, vynucenym sberem a spolehlivejsim pingem.
+
+================================================================================

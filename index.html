@@ -212,6 +212,50 @@ body {
 .modal .modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
 
 .snmp-ts { font-size: 0.65em; color: #334155; margin-top: 4px; }
+
+/* === DEBUG PANEL === */
+/* === FORCE BUTTON === */
+#btn-force { border-color: #f59e0b44; color: #f59e0b; font-size: 0.75em; padding: 3px 10px; }
+#btn-force:hover { border-color: #f59e0b; background: #f59e0b22; }
+#btn-force.running { color: #475569; border-color: #334155; cursor: wait; }
+#btn-force.done { color: #22c55e; border-color: #22c55e44; }
+#btn-force.fail { color: #ef4444; border-color: #ef4444; }
+
+.debug-toggle { position: fixed; bottom: 12px; right: 12px; z-index: 150; padding: 6px 14px; border-radius: 6px; border: 1px solid #475569; background: #1e293b; color: #64748b; font-size: 0.78em; cursor: pointer; font-family: 'Courier New', monospace; }
+.debug-toggle:hover { border-color: #f59e0b; color: #f59e0b; }
+.debug-toggle.has-error { border-color: #ef4444; color: #ef4444; animation: pulse 2s infinite; }
+.debug-panel { background: #0c0f1a; border: 1px solid #1e293b; border-radius: 10px; padding: 16px; margin-top: 20px; display: none; }
+.debug-panel.open { display: block; }
+.debug-panel .dp-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.debug-panel .dp-title { font-size: 0.85em; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 1px; }
+.debug-panel .dp-run-info { font-size: 0.78em; color: #64748b; font-family: 'Courier New', monospace; }
+.debug-source { background: #111827; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+.debug-source.has-error { border-left: 3px solid #ef4444; }
+.debug-source .ds-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.debug-source .ds-name { font-weight: 700; font-size: 0.85em; color: #e2e8f0; }
+.debug-source .ds-status { font-size: 0.72em; padding: 1px 6px; border-radius: 3px; }
+.debug-source .ds-status.ok { color: #22c55e; border: 1px solid #22c55e44; }
+.debug-source .ds-status.error { color: #ef4444; border: 1px solid #ef444466; background: #ef444411; }
+.debug-source .ds-error { font-size: 0.78em; color: #ef4444; background: #ef444411; border-radius: 4px; padding: 4px 8px; margin-bottom: 6px; font-family: 'Courier New', monospace; word-break: break-all; }
+.debug-steps { display: flex; flex-direction: column; gap: 3px; }
+.debug-step { display: flex; align-items: center; gap: 8px; font-size: 0.75em; padding: 3px 6px; border-radius: 4px; }
+.debug-step:hover { background: #1e293b; }
+.debug-step .ds-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.debug-step .ds-dot.ok { background: #22c55e; }
+.debug-step .ds-dot.error { background: #ef4444; }
+.debug-step .ds-step-name { color: #94a3b8; min-width: 110px; font-family: 'Courier New', monospace; }
+.debug-step .ds-duration { color: #475569; min-width: 55px; text-align: right; font-family: 'Courier New', monospace; }
+.debug-step .ds-detail { color: #64748b; flex: 1; }
+.debug-step .ds-time { color: #334155; font-family: 'Courier New', monospace; margin-left: auto; }
+.debug-step .ds-err { color: #ef4444; font-size: 0.9em; }
+.debug-fetch-log { margin-top: 12px; }
+.debug-fetch-log .df-title { font-size: 0.7em; text-transform: uppercase; letter-spacing: 1px; color: #475569; margin-bottom: 6px; }
+.debug-fetch-entry { display: flex; align-items: center; gap: 8px; font-size: 0.72em; padding: 2px 6px; }
+.debug-fetch-entry .dfe-time { color: #475569; font-family: 'Courier New', monospace; min-width: 65px; }
+.debug-fetch-entry .dfe-status { font-family: 'Courier New', monospace; }
+.debug-fetch-entry .dfe-status.ok { color: #22c55e; }
+.debug-fetch-entry .dfe-status.error { color: #ef4444; }
+.debug-fetch-entry .dfe-detail { color: #64748b; }
 </style>
 </head>
 <body>
@@ -226,16 +270,34 @@ body {
         <span class="stat" style="color:#64748b">Boxu: <span id="cnt-tunnels">0</span></span>
     </div>
     <span class="timestamp">Aktualizace: <span id="last-update"></span></span>
+    <button class="btn-sm" id="btn-force" title="Vynutit sber dat (GitHub Actions)">Vynutit sber</button>
 </div>
 
 <div class="content" id="content"></div>
 <div id="modal-root"></div>
+<button class="debug-toggle" id="debug-toggle" title="Debug: sber dat">DEBUG</button>
 
 <script>
 // ============================================================
 // DATA — nacitane z status.json (generovane GitLab CI)
 // ============================================================
 let DATA = { timestamp: null, nvr: [], vpn_servers: [], boxes: [], collection: null };
+
+// ============================================================
+// DEBUG — log co stranka delala (fetch pokusy, vysledky)
+// ============================================================
+let debugOpen = false;
+const fetchLog = []; // {time, status, detail, dataAge}
+function logFetch(status, detail, dataAge) {
+    fetchLog.unshift({
+        time: new Date().toISOString(),
+        status: status,
+        detail: detail,
+        dataAge: dataAge || null,
+    });
+    if (fetchLog.length > 20) fetchLog.length = 20;
+    updateDebugButton();
+}
 
 // ============================================================
 // LOGIKA
@@ -353,7 +415,13 @@ function render() {
         document.getElementById('cnt-nevy').textContent = '—';
         document.getElementById('cnt-tunnels').textContent = '—';
         document.getElementById('last-update').textContent = 'nacitam...';
-        el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#64748b;font-size:1.1em">Nacitam data ze status.json...</div>';
+        el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:#64748b;font-size:1.1em">Nacitam data ze status.json...</div>' + safeRender(() => renderDebugPanel(), 'debug');
+        updateDebugButton();
+        document.getElementById('debug-toggle').addEventListener('click', () => {
+            debugOpen = !debugOpen;
+            const dp = document.getElementById('debug-panel');
+            if (dp) dp.classList.toggle('open', debugOpen);
+        });
         return;
     }
 
@@ -418,7 +486,12 @@ function render() {
         h += safeRender(() => renderVPNSite(vpn), 'VPN ' + vpn.id);
     });
 
+    // Debug panel
+    h += safeRender(() => renderDebugPanel(), 'debug');
+
     el.innerHTML = h;
+
+    updateDebugButton();
 
     // Events
     el.querySelectorAll('.box-header').forEach(x =>
@@ -431,6 +504,12 @@ function render() {
         x.addEventListener('click', () => { activeSort = x.dataset.sort; render(); })
     );
 
+    // Debug toggle
+    document.getElementById('debug-toggle').addEventListener('click', () => {
+        debugOpen = !debugOpen;
+        const dp = document.getElementById('debug-panel');
+        if (dp) dp.classList.toggle('open', debugOpen);
+    });
 
     renderModal();
 }
@@ -871,7 +950,6 @@ async function loadLiveData() {
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const live = await resp.json();
         // Zachovej lokalni editace (mk_expected, cam expected) z puvodniho DATA
-        // Merge: live data + zachovane expected stavy
         if (DATA && DATA.boxes) {
             const oldExpected = {};
             DATA.boxes.forEach(b => {
@@ -888,12 +966,126 @@ async function loadLiveData() {
             });
         }
         DATA = live;
+        // Stari dat
+        const age = live.timestamp ? Math.round((Date.now() - new Date(live.timestamp)) / 60000) : '?';
+        logFetch('ok', `${live.boxes ? live.boxes.length : 0} boxu, ${Object.keys(live.collection || {}).length} zdroju`, age + ' min');
         render();
         return true;
     } catch (e) {
-        console.log('status.json neni dostupny, pouzivam hardcoded data:', e.message);
+        logFetch('error', e.message);
+        console.log('status.json neni dostupny:', e.message);
         return false;
     }
+}
+
+// ============================================================
+// DEBUG PANEL
+// ============================================================
+function updateDebugButton() {
+    const btn = document.getElementById('debug-toggle');
+    if (!btn) return;
+    const hasErr = DATA.collection && Object.values(DATA.collection).some(c => c.status !== 'ok');
+    const fetchErr = fetchLog.length > 0 && fetchLog[0].status !== 'ok';
+    btn.className = 'debug-toggle' + (hasErr || fetchErr ? ' has-error' : '');
+}
+
+function renderDebugPanel() {
+    let h = `<div class="debug-panel ${debugOpen ? 'open' : ''}" id="debug-panel">`;
+    h += '<div class="dp-header"><span class="dp-title">Debug — sber dat</span>';
+
+    // Run metadata
+    if (DATA.run) {
+        const r = DATA.run;
+        h += `<span class="dp-run-info">`;
+        h += `Spusteno: ${fmtTime(r.started)} | `;
+        h += `Trvalo: ${r.duration_s}s | `;
+        h += `Runner: ${r.runner} | `;
+        h += `Trigger: ${r.trigger}`;
+        h += `</span>`;
+    } else {
+        h += `<span class="dp-run-info" style="color:#f59e0b">run metadata chybi (starsi verze collect.py?)</span>`;
+    }
+    h += '</div>';
+
+    // Per-source breakdown
+    if (DATA.collection) {
+        const srcNames = { vpn1: 'VPN1 (93.99.200.101)', vpn5: 'VPN5 (93.99.200.105)', mk_netflix: 'MK_netflix (lokalni)' };
+        for (const [srcId, col] of Object.entries(DATA.collection)) {
+            const isErr = col.status !== 'ok';
+            h += `<div class="debug-source ${isErr ? 'has-error' : ''}">`;
+            h += `<div class="ds-header">`;
+            h += `<span class="ds-name">${srcNames[srcId] || srcId}</span>`;
+            h += `<span class="ds-status ${col.status}">${col.status.toUpperCase()}</span>`;
+            if (col.time) h += `<span style="font-size:0.72em;color:#475569;font-family:'Courier New',monospace">${fmtTime(col.time)}</span>`;
+            h += `</div>`;
+
+            if (isErr && col.error) {
+                h += `<div class="ds-error">${col.error}</div>`;
+            }
+
+            // Kroky
+            if (col.steps && col.steps.length > 0) {
+                h += '<div class="debug-steps">';
+                col.steps.forEach(s => {
+                    h += `<div class="debug-step">`;
+                    h += `<span class="ds-dot ${s.status}"></span>`;
+                    h += `<span class="ds-step-name">${s.step}</span>`;
+                    h += `<span class="ds-duration">${s.duration_s}s</span>`;
+                    h += `<span class="ds-detail">${s.detail || ''}</span>`;
+                    if (s.error) h += `<span class="ds-err">${s.error}</span>`;
+                    if (s.time) h += `<span class="ds-time">${fmtTimeShort(s.time)}</span>`;
+                    h += `</div>`;
+                });
+                h += '</div>';
+            } else {
+                h += `<div style="font-size:0.72em;color:#475569;padding:4px">zadne kroky (starsi verze collect.py)</div>`;
+            }
+            h += '</div>';
+        }
+    } else {
+        h += `<div style="font-size:0.82em;color:#f59e0b;padding:8px">Zadna collection data v status.json</div>`;
+    }
+
+    // SNMP kroky
+    if (DATA.run && DATA.run.snmp_steps && DATA.run.snmp_steps.length > 0) {
+        h += `<div class="debug-source">`;
+        h += `<div class="ds-header"><span class="ds-name">SNMP (NVR)</span></div>`;
+        h += '<div class="debug-steps">';
+        DATA.run.snmp_steps.forEach(s => {
+            h += `<div class="debug-step">`;
+            h += `<span class="ds-dot ${s.status}"></span>`;
+            h += `<span class="ds-step-name">${s.step}</span>`;
+            h += `<span class="ds-duration">${s.duration_s}s</span>`;
+            h += `<span class="ds-detail">${s.detail || ''}</span>`;
+            if (s.error) h += `<span class="ds-err">${s.error}</span>`;
+            h += `</div>`;
+        });
+        h += '</div></div>';
+    }
+
+    // Fetch log — co stranka delala
+    h += '<div class="debug-fetch-log">';
+    h += '<div class="df-title">Stranka — pokusy o nacteni status.json</div>';
+    if (fetchLog.length === 0) {
+        h += '<div style="font-size:0.72em;color:#475569;padding:4px">zatim zadne pokusy</div>';
+    }
+    fetchLog.forEach(f => {
+        h += `<div class="debug-fetch-entry">`;
+        h += `<span class="dfe-time">${fmtTimeShort(f.time)}</span>`;
+        h += `<span class="dfe-status ${f.status}">${f.status.toUpperCase()}</span>`;
+        h += `<span class="dfe-detail">${f.detail}</span>`;
+        if (f.dataAge) h += `<span class="dfe-detail" style="color:#f59e0b">stari: ${f.dataAge}</span>`;
+        h += `</div>`;
+    });
+    h += '</div>';
+
+    h += '</div>';
+    return h;
+}
+
+function fmtTimeShort(iso) {
+    const d = new Date(iso);
+    return d.toLocaleString('cs-CZ', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
 }
 
 // Zobraz info o zdroji dat a collection stavu v renderingu
@@ -910,6 +1102,60 @@ function renderCollectionBanner() {
         <span style="color:#64748b;font-size:0.9em">${fmtTime(DATA.timestamp)}</span>
     </div>`;
 }
+
+// ============================================================
+// FORCE COLLECT — vynuceni sberu pres GitHub API
+// ============================================================
+const GH_REPO = 'FCISCZ/paulservis-dohled';
+const GH_WORKFLOW = 'collect.yml';
+
+async function forceCollect() {
+    const btn = document.getElementById('btn-force');
+    let token = localStorage.getItem('gh_dispatch_token');
+    if (!token) {
+        token = prompt('GitHub Personal Access Token\\n(potrebuje pravo actions:write)\\n\\nZadej token:');
+        if (!token) return;
+        localStorage.setItem('gh_dispatch_token', token.trim());
+    }
+    btn.className = 'btn-sm running';
+    btn.textContent = 'Spoustim...';
+    try {
+        const resp = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `token ${token.trim()}`,
+                'Accept': 'application/vnd.github.v3+json',
+            },
+            body: JSON.stringify({ ref: 'main' }),
+        });
+        if (resp.status === 204) {
+            btn.className = 'btn-sm done';
+            btn.textContent = 'Spusteno!';
+            logFetch('ok', 'Vynuceny sber spusten — data za ~60s');
+            setTimeout(() => { btn.className = 'btn-sm'; btn.textContent = 'Vynutit sber'; }, 5000);
+            // Nacti nova data za 70s
+            setTimeout(loadLiveData, 70000);
+        } else if (resp.status === 401 || resp.status === 403) {
+            localStorage.removeItem('gh_dispatch_token');
+            btn.className = 'btn-sm fail';
+            btn.textContent = 'Spatny token';
+            logFetch('error', `Vynuceny sber: HTTP ${resp.status} — token smazan, zkus znovu`);
+            setTimeout(() => { btn.className = 'btn-sm'; btn.textContent = 'Vynutit sber'; }, 3000);
+        } else {
+            btn.className = 'btn-sm fail';
+            btn.textContent = 'Chyba ' + resp.status;
+            logFetch('error', `Vynuceny sber: HTTP ${resp.status}`);
+            setTimeout(() => { btn.className = 'btn-sm'; btn.textContent = 'Vynutit sber'; }, 3000);
+        }
+    } catch (e) {
+        btn.className = 'btn-sm fail';
+        btn.textContent = 'Chyba';
+        logFetch('error', `Vynuceny sber: ${e.message}`);
+        setTimeout(() => { btn.className = 'btn-sm'; btn.textContent = 'Vynutit sber'; }, 3000);
+    }
+}
+
+document.getElementById('btn-force').addEventListener('click', forceCollect);
 
 // Zobraz loading stav
 render();
