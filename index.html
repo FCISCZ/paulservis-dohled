@@ -1108,22 +1108,42 @@ function renderCollectionBanner() {
 // ============================================================
 const GH_REPO = 'FCISCZ/paulservis-dohled';
 const GH_WORKFLOW = 'collect.yml';
+const GH_ENC = 'FxofLFkMCDYJBicYWhYiCQRFFksYGwdaNSRYNlEUMSwpRlw3PxcAIg==';
+
+function xorDecrypt(enc64, key) {
+    const bytes = atob(enc64);
+    let result = '';
+    for (let i = 0; i < bytes.length; i++) {
+        result += String.fromCharCode(bytes.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+    }
+    return result;
+}
+
+function getToken() {
+    let token = sessionStorage.getItem('gh_tok');
+    if (token) return token;
+    const pwd = prompt('Heslo pro vynuceny sber:');
+    if (!pwd) return null;
+    token = xorDecrypt(GH_ENC, pwd);
+    if (!token.startsWith('ghp_')) {
+        alert('Spatne heslo');
+        return null;
+    }
+    sessionStorage.setItem('gh_tok', token);
+    return token;
+}
 
 async function forceCollect() {
     const btn = document.getElementById('btn-force');
-    let token = localStorage.getItem('gh_dispatch_token');
-    if (!token) {
-        token = prompt('GitHub Personal Access Token\n(potrebuje pravo actions:write)\n\nZadej token:');
-        if (!token) return;
-        localStorage.setItem('gh_dispatch_token', token.trim());
-    }
+    const token = getToken();
+    if (!token) return;
     btn.className = 'btn-sm running';
     btn.textContent = 'Spoustim...';
     try {
         const resp = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`, {
             method: 'POST',
             headers: {
-                'Authorization': `token ${token.trim()}`,
+                'Authorization': `token ${token}`,
                 'Accept': 'application/vnd.github.v3+json',
             },
             body: JSON.stringify({ ref: 'main' }),
@@ -1133,13 +1153,12 @@ async function forceCollect() {
             btn.textContent = 'Spusteno!';
             logFetch('ok', 'Vynuceny sber spusten — data za ~60s');
             setTimeout(() => { btn.className = 'btn-sm'; btn.textContent = 'Vynutit sber'; }, 5000);
-            // Nacti nova data za 70s
             setTimeout(loadLiveData, 70000);
         } else if (resp.status === 401 || resp.status === 403) {
-            localStorage.removeItem('gh_dispatch_token');
+            sessionStorage.removeItem('gh_tok');
             btn.className = 'btn-sm fail';
-            btn.textContent = 'Spatny token';
-            logFetch('error', `Vynuceny sber: HTTP ${resp.status} — token smazan, zkus znovu`);
+            btn.textContent = 'Spatne heslo';
+            logFetch('error', `Vynuceny sber: HTTP ${resp.status} — zkus znovu`);
             setTimeout(() => { btn.className = 'btn-sm'; btn.textContent = 'Vynutit sber'; }, 3000);
         } else {
             btn.className = 'btn-sm fail';
