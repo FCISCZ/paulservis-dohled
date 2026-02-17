@@ -1215,19 +1215,24 @@ async function forcePollWorkflow(token) {
     bannerShow(`<span class="fb-spinner"></span><span class="fb-text">Hledam spusteny workflow...</span><span class="fb-time">${bannerElapsed()}</span>`);
 
     let runId = null;
-    for (let attempt = 0; attempt < 6; attempt++) {
-        await new Promise(r => setTimeout(r, 5000));
-        const data = await ghApi(`/repos/${GH_REPO}/actions/runs?per_page=3&event=workflow_dispatch`, token);
-        if (data && data.workflow_runs && data.workflow_runs.length > 0) {
-            const run = data.workflow_runs[0];
-            const runAge = (Date.now() - new Date(run.created_at)) / 1000;
-            if (runAge < 120) { // max 2 min stary
-                runId = run.id;
-                logFetch('ok', `Workflow #${run.run_number} nalezen (${run.status})`);
-                break;
+    // GitHub casto potrebuje 10-30s na vytvoreni runu po dispatch
+    for (let attempt = 0; attempt < 12; attempt++) {
+        await new Promise(r => setTimeout(r, attempt < 3 ? 5000 : 10000));
+        const data = await ghApi(`/repos/${GH_REPO}/actions/runs?per_page=5`, token);
+        if (data && data.workflow_runs) {
+            // Hledej nejnovejsi workflow_dispatch run (max 3 min stary)
+            for (const run of data.workflow_runs) {
+                if (run.event !== 'workflow_dispatch') continue;
+                const runAge = (Date.now() - new Date(run.created_at)) / 1000;
+                if (runAge < 180 && (run.status === 'queued' || run.status === 'in_progress')) {
+                    runId = run.id;
+                    logFetch('ok', `Workflow #${run.run_number} nalezen (${run.status})`);
+                    break;
+                }
             }
+            if (runId) break;
         }
-        bannerShow(`<span class="fb-spinner"></span><span class="fb-text">Cekam na spusteni workflow... (${attempt+1}/6)</span><span class="fb-time">${bannerElapsed()}</span>`);
+        bannerShow(`<span class="fb-spinner"></span><span class="fb-text">Cekam na spusteni workflow... (${attempt+1})</span><span class="fb-time">${bannerElapsed()}</span>`);
     }
 
     if (!runId) {

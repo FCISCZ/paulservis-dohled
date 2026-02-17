@@ -34,4 +34,5 @@ jobs:
           git add status.json
           git diff --cached --quiet && echo "Zadne zmeny" && exit 0
           git commit -m "Auto: aktualizace status.json"
+          git pull --rebase origin master
           git push
