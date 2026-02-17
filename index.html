@@ -1113,7 +1113,7 @@ async function forceCollect() {
     const btn = document.getElementById('btn-force');
     let token = localStorage.getItem('gh_dispatch_token');
     if (!token) {
-        token = prompt('GitHub Personal Access Token\\n(potrebuje pravo actions:write)\\n\\nZadej token:');
+        token = prompt('GitHub Personal Access Token\n(potrebuje pravo actions:write)\n\nZadej token:');
         if (!token) return;
         localStorage.setItem('gh_dispatch_token', token.trim());
     }
