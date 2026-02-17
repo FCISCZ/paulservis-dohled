@@ -321,3 +321,38 @@ AKCE:   Debug panel, vynuceny sber, oprava pingu, SNMP config
 STAV: Dashboard s debugem, vynucenym sberem a spolehlivejsim pingem.
 
 ================================================================================
+ZAZNAM #009 - 2026-02-17
+AKCE:   Opravy po prvnim realnem pouziti dashboardu
+
+  PROBLEM 1: VYNUTIT SBER NEFUNGOVAL
+  - ref:'main' ale repo pouziva master → GitHub vrati 422
+  - Oprava: ref:'master'
+
+  PROBLEM 2: DEBUG TLACITKO NEREAGOVALO
+  - Event listener se pridaval pri kazdem render() → po N renderech
+    se toggle spustil N-krat a efekt se zrusil
+  - Oprava: listener pridan jen jednou pri init
+
+  PROBLEM 3: COLLECT.PY PREKROCIL TIMEOUT (5 min)
+  - count=5 na ~70 IP = 350s jen pingy + SSH + SNMP > 5 min → cancelled
+  - Oprava: count=3 (stale spolehlivy, -40% casu), workflow timeout 10 min
+  - Overeno: sber trval 241s (4 min) — stihne se
+
+  PROBLEM 4: PUSH FAILURE V WORKFLOW
+  - Novy commit mezi checkout a push → non-fast-forward
+  - Oprava: git pull --rebase pred git push v collect.yml
+
+  PROBLEM 5: POLLING NENASEL SPUSTENY WORKFLOW
+  - GitHub vytvori run az 15-30s po dispatch, polling zkousel jen 30s
+  - Oprava: 12 pokusu s delsimi intervaly, hledame i queued stav
+
+  NOVA FUNKCE: BANNER PRI VYNUCENEM SBERU
+  - Zlaty banner pod status barem s realnym sledovanim workflow
+  - Polling GitHub API: "Odesilam...", "Workflow bezi — Sber dat", "Hotovo"
+  - Vsechno logovane v debug panelu
+
+  OVERENO: prvni uspesny run s novym collect.py (241s, vsechny kroky OK)
+
+STAV: Dashboard plne funkcni, vynuceny sber funguje se sledovanim.
+
+================================================================================
