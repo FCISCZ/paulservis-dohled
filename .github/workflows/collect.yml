@@ -5,6 +5,9 @@ on:
     - cron: '*/15 * * * *'  # kazdych 15 minut
   workflow_dispatch: {}      # rucni spusteni
 
+permissions:
+  contents: write
+
 jobs:
   collect:
     runs-on: ubuntu-latest
