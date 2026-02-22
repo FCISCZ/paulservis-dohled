@@ -742,67 +742,60 @@ def collect_lte_snmp(vpn_id, src_cfg, password, lte_boxes):
 
     print(f"  [{vpn_id}] LTE SNMP: {len(lte_boxes)} boxu...")
 
-    # Krok 1: Zjisti ifIndex lte1 — nejdriv zkusime index 6 a 7 (nejcastejsi),
-    # az pak full scan 1-10. Razantne snizuje pocet SNMP dotazu.
+    # Krok 1: Zjisti ifIndex lte1 — zkousime indexy ODDELENE SSH sessions.
+    # snmp-get na neexistujici index vraci "interrupted" a zabije zbytek
+    # prikazu v retezci (CCR2004 bug). Proto kazdy index = vlastni SSH.
     FAST_INDEXES = [6, 7]
 
-    cmds = []
-    for box in lte_boxes:
-        num = box["num"]
-        ip = f"192.168.50.{int(num)}"
-        for idx in FAST_INDEXES:
-            cmds.append(f':put ">>ifidx_{num}_{idx}<<"; /tool snmp-get address={ip} community=cist oid={IF_DESCR_OID}.{idx}')
-
-    out, err = ssh_multi(host, port, user, password, cmds,
-                         timeout=max(60, len(lte_boxes) * 8))
-
-    # Parsuj ifIndex — najdi kde je "lte1"
     box_ifindex = {}
-    if out:
-        for box in lte_boxes:
-            num = box["num"]
-            for idx in FAST_INDEXES:
-                marker = f">>ifidx_{num}_{idx}<<"
-                pos = out.find(marker)
-                if pos >= 0:
-                    chunk = out[pos + len(marker):]
-                    next_marker = chunk.find(">>")
-                    if next_marker > 0:
-                        chunk = chunk[:next_marker]
-                    if "lte1" in chunk:
-                        box_ifindex[num] = idx
-                        break
 
-    # Fallback: boxy kde jsme nenasli lte1 na 6/7 — zkusime 1-10
-    # Ale jen pokud hlavni SSH prosla (jinak je problem se spojenim, ne s ifIndex)
-    missing = [b for b in lte_boxes if b["num"] not in box_ifindex]
-    if missing and not err:
-        cmds_fb = []
-        for box in missing:
+    def _parse_ifindex(output, boxes, idx):
+        """Parsuj ifIndex odpovedi pro jeden index."""
+        if not output:
+            return
+        for box in boxes:
+            num = box["num"]
+            marker = f">>ifidx_{num}_{idx}<<"
+            pos = output.find(marker)
+            if pos >= 0:
+                chunk = output[pos + len(marker):]
+                next_marker = chunk.find(">>")
+                if next_marker > 0:
+                    chunk = chunk[:next_marker]
+                if "lte1" in chunk:
+                    box_ifindex[num] = idx
+
+    err = None
+    for idx in FAST_INDEXES:
+        remaining = [b for b in lte_boxes if b["num"] not in box_ifindex]
+        if not remaining:
+            break
+        cmds = []
+        for box in remaining:
             num = box["num"]
             ip = f"192.168.50.{int(num)}"
-            for idx in range(1, 11):
-                if idx not in FAST_INDEXES:
-                    cmds_fb.append(f':put ">>ifidx_{num}_{idx}<<"; /tool snmp-get address={ip} community=cist oid={IF_DESCR_OID}.{idx}')
-        if cmds_fb:
+            cmds.append(f':put ">>ifidx_{num}_{idx}<<"; /tool snmp-get address={ip} community=cist oid={IF_DESCR_OID}.{idx}')
+        out, err = ssh_multi(host, port, user, password, cmds,
+                             timeout=max(60, len(remaining) * 8))
+        _parse_ifindex(out, remaining, idx)
+
+    # Fallback: boxy kde jsme nenasli lte1 na 6/7 — zkusime 1-10 (po jednom)
+    missing = [b for b in lte_boxes if b["num"] not in box_ifindex]
+    if missing and not err:
+        for idx in range(1, 11):
+            if idx in FAST_INDEXES:
+                continue
+            still_missing = [b for b in missing if b["num"] not in box_ifindex]
+            if not still_missing:
+                break
+            cmds_fb = []
+            for box in still_missing:
+                num = box["num"]
+                ip = f"192.168.50.{int(num)}"
+                cmds_fb.append(f':put ">>ifidx_{num}_{idx}<<"; /tool snmp-get address={ip} community=cist oid={IF_DESCR_OID}.{idx}')
             out_fb, _ = ssh_multi(host, port, user, password, cmds_fb,
-                                  timeout=max(60, len(missing) * 20))
-            if out_fb:
-                for box in missing:
-                    num = box["num"]
-                    for idx in range(1, 11):
-                        if idx in FAST_INDEXES:
-                            continue
-                        marker = f">>ifidx_{num}_{idx}<<"
-                        pos = out_fb.find(marker)
-                        if pos >= 0:
-                            chunk = out_fb[pos + len(marker):]
-                            next_marker = chunk.find(">>")
-                            if next_marker > 0:
-                                chunk = chunk[:next_marker]
-                            if "lte1" in chunk:
-                                box_ifindex[num] = idx
-                                break
+                                  timeout=max(60, len(still_missing) * 8))
+            _parse_ifindex(out_fb, still_missing, idx)
 
     if err and not box_ifindex:
         print(f"  [{vpn_id}] LTE ifIndex CHYBA: {err}")
