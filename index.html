@@ -1224,7 +1224,7 @@ function renderDebugPanel() {
 
     // Per-source breakdown
     if (DATA.collection) {
-        const srcNames = { vpn1: 'VPN 01 (93.99.200.101)', vpn5: 'VPN 05 (93.99.200.105)', mk_netflix: 'MK_netflix (lokalni)' };
+        const srcNames = { vpn1: 'VPN01 (93.99.200.101)', vpn5: 'VPN05 (93.99.200.105)', mk_netflix: 'MK_netflix (lokalni)' };
         for (const [srcId, col] of Object.entries(DATA.collection)) {
             const isErr = col.status !== 'ok';
             h += `<div class="debug-source ${isErr ? 'has-error' : ''}">`;
@@ -1326,7 +1326,7 @@ function renderCollectionBanner() {
     const items = Object.entries(DATA.collection).map(([k, v]) => {
         const icon = v.status === 'ok' ? '&#9679;' : '&#9675;';
         const color = v.status === 'ok' ? '#22c55e' : '#ef4444';
-        const label = k === 'mk_netflix' ? 'Lokalni (MK_net)' : k.toUpperCase();
+        const label = k === 'mk_netflix' ? 'Lokalni (MK_net)' : k === 'vpn1' ? 'VPN01' : k === 'vpn5' ? 'VPN05' : k.toUpperCase();
         return `<span style="color:${color};font-size:0.8em">${icon} ${label}</span>`;
     });
     return `<div style="display:flex;gap:16px;align-items:center;padding:6px 0;font-size:0.82em;color:#64748b;margin-bottom:8px">
