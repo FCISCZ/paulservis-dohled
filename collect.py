@@ -739,34 +739,26 @@ def collect_lte_snmp(vpn_id, src_cfg, password, lte_boxes):
 
     print(f"  [{vpn_id}] LTE SNMP: {len(lte_boxes)} boxu...")
 
-    # Krok 1: Zjisti ifIndex lte1 pro kazdy box (projdi ifDescr 1-10)
-    # Krok 2: Vycti LTE signal s nalezenym ifIndex
-    # Vsechno v jedne SSH session
+    # Krok 1: Zjisti ifIndex lte1 — nejdriv zkusime index 6 a 7 (nejcastejsi),
+    # az pak full scan 1-10. Razantne snizuje pocet SNMP dotazu.
+    FAST_INDEXES = [6, 7]
+
     cmds = []
     for box in lte_boxes:
         num = box["num"]
         ip = f"192.168.50.{int(num)}"
-        # ifDescr pro indexy 1-10
-        for idx in range(1, 11):
+        for idx in FAST_INDEXES:
             cmds.append(f':put ">>ifidx_{num}_{idx}<<"; /tool snmp-get address={ip} community=cist oid={IF_DESCR_OID}.{idx}')
 
     out, err = ssh_multi(host, port, user, password, cmds,
-                         timeout=max(60, len(lte_boxes) * 15))
-
-    if err:
-        print(f"  [{vpn_id}] LTE ifIndex CHYBA: {err}")
-        s = {"step": f"lte_snmp_{vpn_id}", "status": "error",
-             "duration_s": round(time.monotonic() - t0, 2),
-             "time": datetime.now(timezone.utc).isoformat(),
-             "detail": f"{len(lte_boxes)} boxu", "error": err}
-        return {}, s
+                         timeout=max(60, len(lte_boxes) * 8))
 
     # Parsuj ifIndex — najdi kde je "lte1"
     box_ifindex = {}
     if out:
         for box in lte_boxes:
             num = box["num"]
-            for idx in range(1, 11):
+            for idx in FAST_INDEXES:
                 marker = f">>ifidx_{num}_{idx}<<"
                 pos = out.find(marker)
                 if pos >= 0:
@@ -778,6 +770,44 @@ def collect_lte_snmp(vpn_id, src_cfg, password, lte_boxes):
                         box_ifindex[num] = idx
                         break
 
+    # Fallback: boxy kde jsme nenasli lte1 na 6/7 — zkusime 1-10
+    missing = [b for b in lte_boxes if b["num"] not in box_ifindex]
+    if missing:
+        cmds_fb = []
+        for box in missing:
+            num = box["num"]
+            ip = f"192.168.50.{int(num)}"
+            for idx in range(1, 11):
+                if idx not in FAST_INDEXES:
+                    cmds_fb.append(f':put ">>ifidx_{num}_{idx}<<"; /tool snmp-get address={ip} community=cist oid={IF_DESCR_OID}.{idx}')
+        if cmds_fb:
+            out_fb, _ = ssh_multi(host, port, user, password, cmds_fb,
+                                  timeout=max(60, len(missing) * 20))
+            if out_fb:
+                for box in missing:
+                    num = box["num"]
+                    for idx in range(1, 11):
+                        if idx in FAST_INDEXES:
+                            continue
+                        marker = f">>ifidx_{num}_{idx}<<"
+                        pos = out_fb.find(marker)
+                        if pos >= 0:
+                            chunk = out_fb[pos + len(marker):]
+                            next_marker = chunk.find(">>")
+                            if next_marker > 0:
+                                chunk = chunk[:next_marker]
+                            if "lte1" in chunk:
+                                box_ifindex[num] = idx
+                                break
+
+    if err and not box_ifindex:
+        print(f"  [{vpn_id}] LTE ifIndex CHYBA: {err}")
+        s = {"step": f"lte_snmp_{vpn_id}", "status": "error",
+             "duration_s": round(time.monotonic() - t0, 2),
+             "time": datetime.now(timezone.utc).isoformat(),
+             "detail": f"{len(lte_boxes)} boxu", "error": err}
+        return {}, s
+
     if not box_ifindex:
         print(f"  [{vpn_id}] LTE: zadny box nema lte1 interface")
         s = {"step": f"lte_snmp_{vpn_id}", "status": "error",
@@ -785,6 +815,8 @@ def collect_lte_snmp(vpn_id, src_cfg, password, lte_boxes):
              "time": datetime.now(timezone.utc).isoformat(),
              "detail": f"0/{len(lte_boxes)} ifIndex nalezen", "error": "zadny lte1"}
         return {}, s
+
+    print(f"  [{vpn_id}] LTE ifIndex: {len(box_ifindex)}/{len(lte_boxes)} nalezeno")
 
     # Krok 2: Vycti LTE signal
     cmds2 = []
@@ -1171,20 +1203,32 @@ def main():
         if snmp_step:
             snmp_steps.append(snmp_step)
 
-    # --- LTE SNMP ---
+    # --- LTE SNMP (paralelne VPN1 + VPN5) ---
     lte_history_path = os.path.join(os.path.dirname(__file__) or ".", "lte_history.json")
     lte_history = load_lte_history(lte_history_path)
     lte_snmp = {}
     lte_steps = []
+
+    lte_tasks = {}
     for src_id in ["vpn1", "vpn5"]:
         src_cfg = config["sources"][src_id]
         lte_boxes = [b for b in config.get("vpn_boxes", [])
                      if b["vpn"] == src_id and b.get("lte")]
         if lte_boxes:
-            lte_data, lte_step = collect_lte_snmp(src_id, src_cfg, password, lte_boxes)
-            lte_snmp.update(lte_data)
-            if lte_step:
-                lte_steps.append(lte_step)
+            lte_tasks[src_id] = (src_cfg, lte_boxes)
+
+    if lte_tasks:
+        print(f"  LTE SNMP: paralelne {len(lte_tasks)} VPN...")
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futures = {
+                executor.submit(collect_lte_snmp, src_id, cfg, password, boxes): src_id
+                for src_id, (cfg, boxes) in lte_tasks.items()
+            }
+            for future in as_completed(futures):
+                lte_data, lte_step = future.result()
+                lte_snmp.update(lte_data)
+                if lte_step:
+                    lte_steps.append(lte_step)
 
     # Aktualizuj a uloz historii
     if lte_snmp:
