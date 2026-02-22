@@ -31,7 +31,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add status.json
+          git add status.json lte_history.json
           git diff --cached --quiet && echo "Zadne zmeny" && exit 0
           git commit -m "Auto: aktualizace status.json"
           git pull --rebase origin master

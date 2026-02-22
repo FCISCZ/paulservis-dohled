@@ -356,3 +356,235 @@ AKCE:   Opravy po prvnim realnem pouziti dashboardu
 STAV: Dashboard plne funkcni, vynuceny sber funguje se sledovanim.
 
 ================================================================================
+ZAZNAM #010 - 2026-02-21
+AKCE:   Overeni verejne IP NVR Paulservis
+
+  ZJISTENO:
+  - NVR Paulservis (Uniview NVR516-128) ma druhe rozhrani v FC ISP siti: 192.168.100.241
+  - Verejna IP tohoto rozhrani: 93.99.172.6 (NAT)
+  - Overeno pingem z VPN1 i VPN5 — 4/4, ~5ms odezva
+  - Dosud byla v config.yaml ip: "" (nezname)
+
+  KOMPLETNI SITOVANI NVR PAULSERVIS:
+    eth1 (VPN sit):  192.168.50.253  — pristup pres VPN1 bridge1
+    eth2 (FC ISP):   192.168.100.241 — verejna 93.99.172.6 (NAT)
+
+  ROZHODNUTI:
+  - Verejnou IP 93.99.172.6 zatim NEPOUZIVAT pro SNMP
+  - Soucasny pristup (SSH na VPN1 → /tool snmp-get na 50.253) funguje spolehlive
+  - SNMP pres verejny internet = bezpecnostni riziko
+  - Verejka je dobra vedet pro pripad potreby (diagnostika, pristup na web UI NVR)
+
+STAV: Informace zapsana, zadne zmeny v kodu/configu.
+
+================================================================================
+ZAZNAM #012 - 2026-02-22
+AKCE:   Analyza falesnych stavu + test paralelnich pingu
+
+  HLASEN PROBLEM: Box 08 (VPN5) kamera hlasi offline na dashboardu.
+
+  OVERENI:
+  - Ping z VPN5 na kameru 192.168.50.192: 0/15 — skutecne mrtva
+  - Ping z VPN5 na MK boxu 192.168.50.8: 0/15 — taky mrtvy!
+  - Dashboard ukazuje box ZELENY, kameru CERVENOU — CHYBA
+  - Pricina: collect.py veri L2TP peer tabulce (peer existuje = online),
+    i kdyz box realne neodpovida na ping
+
+  TEST PARALELNICH PINGU (5 SSH session najednou, count=15):
+  - MK VPN5 (RB1100AHx4) zvladl 5 paralelnich SSH session bez problemu
+  - 19 boxu otestovano za 60s (misto ~300s sekvencne)
+  - Odhaleno: box 25 (13% loss), box 87 (13% loss), box 93 (26% loss)
+    → s count=3 by tyto mohly obcas falesne vypadnout
+  - Box 08 + kamera 192.168.50.192: oba 0/15 — skutecny vypadek
+
+  TODO — MUSI SE UDELAT:
+
+  1. PING: Prepsat na paralelni (5 SSH session), count=15
+     - Soucasny stav: 1 session, count=3, sekvencne (~210s)
+     - Cil: 5 session, count=15, paralelne (~60s)
+     - Overeno: MK to zvladne, cas je kratsi nez ted
+     - 1 z 15 staci = online (uz tak funguje v parse_ping)
+
+  2. STATUS BOXU: Nespolihat jen na L2TP peer tabulku
+     - Soucasny stav: L2TP peer existuje = box online (i kdyz neodpovida)
+     - Cil: peer existuje ALE ping 0/15 = box OFFLINE (cerveny)
+     - Ping musi byt rozhodujici, L2TP tabulka je jen pomocna info
+
+STAV: Analyzovano, overeno, ceka na implementaci.
+
+================================================================================
+ZAZNAM #011 - 2026-02-21
+AKCE:   Pruzkum SNMP stromu NVR Paulservis — hledani OID pro jmena kamer
+
+  CIL: Zjistit zda NVR podporuje OID .20.4 (ipcInfo) pro vycteni jmen kamer.
+
+  NOVE OBJEVENE OIDy (1.3.6.1.4.1.25506.20.X.0):
+    .20.5.0 — Channel Encoding Info (55 kanalu, codec H265/H264, bitrate)
+    .20.6.0 — System Uptime (ms)
+    .20.7.0 — Memory (utilizace, total, free)
+    .20.8.0 — CPU (%)
+  POZOR: I tyto vysledky je treba ZNOVU OVERIT na cerstve bezicim NVR!
+  Zjistovaly se v dobe kdy uz NVR mohlo byt pod tlakem — odpovedi mohly
+  byt neuplne nebo zkreslene (napr. .20.9+ mohly existovat ale neodpovedet).
+
+  HLEDANY OID .20.4 (jmena kamer):
+    .20.4.0 (flat string) — PRAZDNE / TIMEOUT
+    .20.4.1.1.1 (index) — PRAZDNE
+    .20.4.1.2.1 (IPC.Name) — PRAZDNE
+    .20.4.1.3.1 (IPC.IP) — PRAZDNE
+    .20.4.1.5.1 (IPC.Status) — PRAZDNE
+  VYSLEDEK: NEPRUKAZNY — NVR mohlo byt uz pretizene.
+
+  DRUHY TEST (na cerstve bezicim NVR, lokalka 192.168.100.241):
+  - snmpget .20.1.0 → OK, odpovida okamzite
+  - snmpget .20.4.0 → TIMEOUT (i na cerstve bezicim, nepreiizenem NVR)
+  - snmpwalk .20 → vraci .20.1.0, .20.2.0, .20.3.0 pak TIMEOUT
+    Walk pouziva GETNEXT — po .20.3.0 se pta "co dal?" a NVR NEODPOVI.
+    To znamena ze .20.4 EXISTUJE ale NVR ho NEUMI VYGENEROVAT
+    (55+ kamer = prilis velky string → timeout).
+    Kdyby .20.4 neexistoval, NVR by preskocil na .20.5.0.
+
+  TRETI TEST — 40 cilovych dotazu na cerstve bezicim NVR (192.168.100.241):
+  Metodika: vzdy jeden dotaz, cekat na odpoved, pak dalsi.
+
+  KOMPLETNI MAPA ENTERPRISE STROMU .25506.20:
+    .20.1.0 — DevInfo           GET=OK    (model, FW, S/N)
+    .20.2.0 — DiskTotal         GET=OK    (16 slotu, kapacita)
+    .20.3.0 — DiskDetail        GET=OK    (per-disk stav)
+    .20.4.0 — IPC Info          GET=TIMEOUT (existuje ale NVR nezvladne vygenerovat)
+    .20.5.0 — Channel Encoding  GET=TIMEOUT (55 kanalu, prilis velke)
+    .20.6.0 — Uptime            GET=OK    (ms)
+    .20.7.0 — Memory            GET=OK    (utilizace, total, free)
+    .20.8.0 — CPU               GET=OK    (%)
+    .20.9+ az .25506.21 — NIC (No Such Object)
+
+  TABULKOVE OIDy (.20.x.1.y.z):
+    Vsechny testovane varianty vraci "No Such Instance":
+    .20.4.1.1.1, .20.4.1.2.1, .20.4.1.3.1, .20.4.1.4.1, .20.4.1.5.1,
+    .20.4.1.6.1, .20.4.1.2.0, .20.4.1.2.33, .20.4.0.0, .20.4.0.1,
+    .20.4.2.0, .20.4.2.1.1, .20.5.1.x, .20.3.1.x, .20.6.1, .20.7.1, .20.8.1
+    → Firmware NEMA tabulky, jen flat stringy.
+
+  GETNEXT CHOVANI:
+    GETNEXT za .20.3.0 → TIMEOUT (narazí na .20.4.0 a zasekne se)
+    GETNEXT za .20.4, .20.4.1, .20.4.1.1, .20.4.99 → TIMEOUT (vsude v .20.4)
+    GETNEXT za .20.5.0 → .20.6.0 OK (preskoci na dalsi)
+    GETNEXT za .25506 → .20.1.0 (jediny strom je .20)
+
+  MIB-II: Skoro prazdne. sysDescr, sysUpTime, sysName = No Such Object.
+    Pouze sysORTable (SNMPv2/v3 moduly).
+
+  ZAVER:
+  - .20.4.0 (IPC Info) EXISTUJE ale NVR ho NEUMI vygenerovat
+    (55+ kamer, string prilis velky, NVR se na nem zasekne)
+  - .20.5.0 (Encoding) taky GET timeout (velka odpoved), ale pres MK funguje
+  - Tabulkovy pristup per-kamera NEEXISTUJE na tomto FW
+  - Pro jmena kamer SNMP NENI CESTA → alternativa: LAPI (Uniview HTTP API)
+  - Nove uzitecne OIDy: .20.6 (uptime), .20.7 (RAM), .20.8 (CPU)
+
+  !!! CHYBA: NVR PRETIZENO DOTAZY !!!
+  - Posilal jsem prilis mnoho SNMP dotazu najednou (5-6 paralelnich)
+  - CPU NVR vylezlo na 100%, web UI prestalo reagovat
+  - NVR se pravdepodobne zotavi samo (ping funguje)
+  - Vysledky pro .20.4 jsou NEPRUKAZNE — nevime jestli OID neexistuje
+    nebo jestli NVR uz bylo pretizene a nestihlo odpovedet
+
+  POUCENI — KRITICKE:
+  - NVR516-128 ma SLABY procesor, SNMP ho snadno zahltí
+  - NIKDY neposilat vic nez JEDEN SNMP dotaz najednou
+  - Mezi dotazy VZDY pauza, cekat na odpoved
+  - Klicovy test (.20.4.0) delat jako PRVNI vec na cerstve bezicim NVR
+  - Nepouzivat snmpwalk na cely strom — postupne snmpget po jednom
+
+  TODO (az se NVR zotavi):
+  - Poslat JEDEN dotaz na .20.4.0, na cerstve bezicim NVR, s dlouhym timeout
+  - Pokud neodpovi → firmware nema, hledat alternativu (LAPI HTTP API)
+  - Pokud odpovi → parser do collect.py
+
+STAV: NVR docasne nedostupne (web UI), cekame na zotaveni. Test .20.4 odlozen.
+
+================================================================================
+ZAZNAM #013 - 2026-02-22
+AKCE:   Paralelni ping + oprava statusu boxu + debug detail
+
+  ZMENA 1: PARALELNI PING (collect.py)
+  - Prepsan z 1 sekvencni SSH session (count=3, ~210s) na 5 paralelnich (count=15, ~60s)
+  - ThreadPoolExecutor, davky IP rozdelene rovnomerne
+  - Overeno ze MK zvladne 5 paralelnich SSH session (test z #012)
+  - Konstanty: PING_COUNT=15, PING_SESSIONS=5
+  - Nova funkce ping_batch() — pingne davku IP v jedne session
+
+  ZMENA 2: STATUS BOXU PODLE PINGU
+  - PRED: L2TP peer existuje = online (i kdyz box neodpovida na ping)
+  - PO: Ping rozhoduje. True=online, False=offline. L2TP peer jen fallback (None)
+  - Fix pro bug z #012 (box 08 zeleny ale mrtvy)
+
+  ZMENA 3: DEBUG DETAIL PRO OFFLINE IP
+  - Ping step ukazuje ktere konkretni IP jsou OFFLINE
+  - Format: "30 IP v 5 session (count=15), MK 11/12 | OFFLINE: 192.168.50.8"
+  - Novy status "warn" (zluta tecka) v debug panelu
+  - Totez pro lokalni zarizeni (mk_netflix)
+
+  PUSHNUTO: 2 commity na GitHub, CI bezi s novym kodem.
+
+STAV: Paralelni ping nasazen, status boxu opraven, debug rozsiren.
+
+================================================================================
+ZAZNAM #014 - 2026-02-22
+AKCE:   Pristup na VPN boxy + SNMP pro LTE signal
+
+  CIL: Vzdaleny pristup na MK boxy za VPN pro diagnostiku a sber LTE signalu.
+
+  TESTOVANE METODY PRISTUPU (pres VPN server na box):
+  | Metoda             | Vysledek                              |
+  | SSH -W proxy       | MK SSH nepodporuje                    |
+  | SSH -L tunel       | MK SSH nepodporuje                    |
+  | ROMON ssh          | Interaktivni terminal (nejde z CLI)   |
+  | /system ssh        | Interaktivni terminal (nejde z CLI)   |
+  | MAC-telnet         | FUNGUJE pres expect!                  |
+  | IPv6 link-local    | Zadne IPv6 na bridge1                 |
+  | MK neighbor disc.  | Nevidi boxy za L2TP                   |
+  | REST API/MK API    | Porty zavrene                         |
+  | ROMON ssh+expect   | ROMON nefunguje pres L2TP bridge      |
+
+  VITEZNA METODA: MAC-telnet pres expect
+  - Prikaz: ssh -tt na VPN server → /tool mac-telnet MAC → expect login/heslo
+  - Funguje spolehljve, overeno na vice boxech
+  - Viz mikrotik_reference.md (sekce "Pristup na MK bez routovatelne IP")
+
+  SNMP PRO LTE SIGNAL:
+  - MikroTik OIDy: 1.3.6.1.4.1.14988.1.1.16.1.1.{2,3,4,7}
+    .2 = RSSI, .3 = RSRQ, .4 = RSRP, .7 = SINR
+  - Index = ifIndex lte1 interfacu (zjistit z ifTable: 1.3.6.1.2.1.2.2.1.2.X)
+  - POZOR: ifIndex NENI VSUDE STEJNY! Na nekterych boxech je 6, na jinych 7
+  - Cteni: /tool snmp-get address=192.168.50.XX community=cist oid=...ifIndex
+  - Krizove overeni SNMP vs MAC-telnet monitor: data sedi (odchylka 1-2 dB)
+
+  ZAPNUTO SNMP NA 19 LTE BOXECH:
+  VPN1 (7): 84, 85, 86, 87, 88, 89, 94
+  VPN5 (12): 86, 87, 88, 89, 90, 91, 92, 93, 95, 96, 97, 98
+  - Community: "cist", read-only, write-access=no
+  - Zapnuto pres MAC-telnet (expect) z VPN serveru
+
+  OVERENO SNMP LTE SIGNAL NA VSECH 19:
+  VPN1: 84(-63), 85(-55), 86(-56), 87(-47), 88(-53), 89(-63), 94(-49)
+  VPN5: 86(-70), 87(-57), 88(-66), 89(-72), 90(-64), 91(-48), 92(-63),
+        93(-72), 95(-51), 96(-52), 97(-53), 98(-51)
+
+  HARDWARE BOXU:
+  - LTE boxy (cisla 84-98): hAP ax lite LTE6 (L41G-2axD&FG621-EA), ROS 7.12-7.20
+  - Modem: FG621-EA, LTE Band B20 (Vodafone CZ)
+  - Non-LTE boxy (nizka cisla): ruzne, napr. hEX S (RB760iGS)
+  - Box 08 (VPN5): hEX S = dratovy, NEMA LTE
+
+  VEDLEJSI ZMENA: VPN5 SNMP community prejmenovano na "cist" (omylem,
+  prikazy se spustily na VPN5 misto boxu — neskodne, nikdo VPN5 SNMP nedotazuje)
+
+  TODO:
+  - Integrace LTE SNMP do collect.py (sber signalu pri kazdem runu)
+  - Ukladani historie signalu pro grafy (tydeni trend)
+  - Dashboard: zobrazeni LTE signalu u boxu + graf
+
+STAV: SNMP zapnute, overene. Ceka na integraci do collect.py.
+
+================================================================================

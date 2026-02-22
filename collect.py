@@ -713,10 +713,197 @@ def collect_nvr_snmp(nvr_cfg, sources, password):
 
 
 # =============================================================================
+# SNMP — LTE SIGNAL (MikroTik boxy)
+# =============================================================================
+
+# MikroTik enterprise OIDy pro LTE signal
+LTE_OIDS = {
+    "rssi": "1.3.6.1.4.1.14988.1.1.16.1.1.2",
+    "rsrq": "1.3.6.1.4.1.14988.1.1.16.1.1.3",
+    "rsrp": "1.3.6.1.4.1.14988.1.1.16.1.1.4",
+    "sinr": "1.3.6.1.4.1.14988.1.1.16.1.1.7",
+}
+IF_DESCR_OID = "1.3.6.1.2.1.2.2.1.2"  # ifTable ifDescr
+
+
+def collect_lte_snmp(vpn_id, src_cfg, password, lte_boxes):
+    """Vycte LTE signal ze vsech LTE boxu na jednom VPN serveru.
+    Vsechno v jedne SSH session. Vraci (dict {box_key: lte_data}, step)."""
+    if not lte_boxes:
+        return {}, None
+
+    host = src_cfg["host"]
+    port = src_cfg["port"]
+    user = src_cfg["user"]
+    t0 = step_start()
+
+    print(f"  [{vpn_id}] LTE SNMP: {len(lte_boxes)} boxu...")
+
+    # Krok 1: Zjisti ifIndex lte1 pro kazdy box (projdi ifDescr 1-10)
+    # Krok 2: Vycti LTE signal s nalezenym ifIndex
+    # Vsechno v jedne SSH session
+    cmds = []
+    for box in lte_boxes:
+        num = box["num"]
+        ip = f"192.168.50.{int(num)}"
+        # ifDescr pro indexy 1-10
+        for idx in range(1, 11):
+            cmds.append(f':put ">>ifidx_{num}_{idx}<<"; /tool snmp-get address={ip} community=cist oid={IF_DESCR_OID}.{idx}')
+
+    out, err = ssh_multi(host, port, user, password, cmds,
+                         timeout=max(60, len(lte_boxes) * 15))
+
+    if err:
+        print(f"  [{vpn_id}] LTE ifIndex CHYBA: {err}")
+        s = {"step": f"lte_snmp_{vpn_id}", "status": "error",
+             "duration_s": round(time.monotonic() - t0, 2),
+             "time": datetime.now(timezone.utc).isoformat(),
+             "detail": f"{len(lte_boxes)} boxu", "error": err}
+        return {}, s
+
+    # Parsuj ifIndex — najdi kde je "lte1"
+    box_ifindex = {}
+    if out:
+        for box in lte_boxes:
+            num = box["num"]
+            for idx in range(1, 11):
+                marker = f">>ifidx_{num}_{idx}<<"
+                pos = out.find(marker)
+                if pos >= 0:
+                    chunk = out[pos + len(marker):]
+                    next_marker = chunk.find(">>")
+                    if next_marker > 0:
+                        chunk = chunk[:next_marker]
+                    if "lte1" in chunk:
+                        box_ifindex[num] = idx
+                        break
+
+    if not box_ifindex:
+        print(f"  [{vpn_id}] LTE: zadny box nema lte1 interface")
+        s = {"step": f"lte_snmp_{vpn_id}", "status": "error",
+             "duration_s": round(time.monotonic() - t0, 2),
+             "time": datetime.now(timezone.utc).isoformat(),
+             "detail": f"0/{len(lte_boxes)} ifIndex nalezen", "error": "zadny lte1"}
+        return {}, s
+
+    # Krok 2: Vycti LTE signal
+    cmds2 = []
+    for box in lte_boxes:
+        num = box["num"]
+        idx = box_ifindex.get(num)
+        if not idx:
+            continue
+        ip = f"192.168.50.{int(num)}"
+        for name, oid in LTE_OIDS.items():
+            cmds2.append(f':put ">>lte_{num}_{name}<<"; /tool snmp-get address={ip} community=cist oid={oid}.{idx}')
+
+    out2, err2 = ssh_multi(host, port, user, password, cmds2,
+                           timeout=max(60, len(cmds2) * 3))
+
+    # Parsuj signal
+    results = {}
+    ok_count = 0
+    fail_detail = []
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    for box in lte_boxes:
+        num = box["num"]
+        key = f"{vpn_id}_{num}"
+        idx = box_ifindex.get(num)
+        if not idx:
+            fail_detail.append(f"box {num}: ifIndex nenalezen")
+            continue
+
+        lte_data = {"snmp_time": now_iso, "ifindex": idx}
+        got_any = False
+
+        if out2:
+            for name in LTE_OIDS:
+                marker = f">>lte_{num}_{name}<<"
+                pos = out2.find(marker)
+                if pos >= 0:
+                    chunk = out2[pos + len(marker):]
+                    next_marker = chunk.find(">>")
+                    if next_marker > 0:
+                        chunk = chunk[:next_marker]
+                    m = re.search(r"integer\s+(-?\d+)", chunk)
+                    if m:
+                        lte_data[name] = int(m.group(1))
+                        got_any = True
+
+        if got_any:
+            results[key] = lte_data
+            ok_count += 1
+        else:
+            fail_detail.append(f"box {num}: prazdna odpoved")
+
+    detail = f"{ok_count}/{len(lte_boxes)} boxu"
+    if fail_detail:
+        detail += " | " + ", ".join(fail_detail)
+    print(f"  [{vpn_id}] LTE SNMP: {ok_count}/{len(lte_boxes)} OK")
+
+    s = {"step": f"lte_snmp_{vpn_id}",
+         "status": "ok" if ok_count == len(lte_boxes) else "warn" if ok_count > 0 else "error",
+         "duration_s": round(time.monotonic() - t0, 2),
+         "time": now_iso,
+         "detail": detail,
+         "error": err2 or ""}
+    return results, s
+
+
+def load_lte_history(path):
+    """Nacte historii LTE signalu z JSON souboru."""
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def update_lte_history(history, new_data, max_age_days=7):
+    """Prida nove mereni do historie a orize stare zaznamy."""
+    cutoff = datetime.now(timezone.utc).timestamp() - max_age_days * 86400
+
+    for key, lte in new_data.items():
+        entry = {"t": lte["snmp_time"]}
+        for field in ("rssi", "rsrp", "rsrq", "sinr"):
+            if field in lte:
+                entry[field] = lte[field]
+
+        if key not in history:
+            history[key] = []
+        history[key].append(entry)
+
+    # Orez stare zaznamy
+    for key in list(history.keys()):
+        filtered = []
+        for rec in history[key]:
+            try:
+                t = datetime.fromisoformat(rec["t"].replace("Z", "+00:00")).timestamp()
+                if t > cutoff:
+                    filtered.append(rec)
+            except (ValueError, KeyError):
+                pass
+        if filtered:
+            history[key] = filtered
+        else:
+            del history[key]
+
+    return history
+
+
+def save_lte_history(history, path):
+    """Zapise historii LTE signalu do JSON souboru."""
+    with open(path, "w") as f:
+        json.dump(history, f, indent=2, ensure_ascii=False)
+
+
+# =============================================================================
 # HLAVNI LOGIKA — sestav status.json
 # =============================================================================
 
-def build_status(config, vpn_results, local_results, nvr_snmp, run_meta=None):
+def build_status(config, vpn_results, local_results, nvr_snmp, run_meta=None,
+                  lte_snmp=None, lte_history=None):
     """Sestavi status.json z konfigurace + zivych dat."""
     now = datetime.now(timezone.utc).isoformat()
 
@@ -860,6 +1047,24 @@ def build_status(config, vpn_results, local_results, nvr_snmp, run_meta=None):
                 }
                 box["cams"].append(cam)
 
+        # LTE signal data
+        if lte_snmp and key in (lte_snmp or {}):
+            lte = lte_snmp[key]
+            box["lte"] = {
+                "rssi": lte.get("rssi"),
+                "rsrp": lte.get("rsrp"),
+                "rsrq": lte.get("rsrq"),
+                "sinr": lte.get("sinr"),
+                "snmp_time": lte.get("snmp_time", ""),
+            }
+        elif box_cfg.get("lte"):
+            box["lte"] = {"rssi": None, "rsrp": None, "rsrq": None, "sinr": None,
+                          "snmp_time": ""}
+
+        # LTE historie pro sparkline
+        if lte_history and key in (lte_history or {}):
+            box["lte_history"] = lte_history[key]
+
         status["boxes"].append(box)
 
     # --- Lokalni zarizeni ---
@@ -966,6 +1171,26 @@ def main():
         if snmp_step:
             snmp_steps.append(snmp_step)
 
+    # --- LTE SNMP ---
+    lte_history_path = os.path.join(os.path.dirname(__file__) or ".", "lte_history.json")
+    lte_history = load_lte_history(lte_history_path)
+    lte_snmp = {}
+    lte_steps = []
+    for src_id in ["vpn1", "vpn5"]:
+        src_cfg = config["sources"][src_id]
+        lte_boxes = [b for b in config.get("vpn_boxes", [])
+                     if b["vpn"] == src_id and b.get("lte")]
+        if lte_boxes:
+            lte_data, lte_step = collect_lte_snmp(src_id, src_cfg, password, lte_boxes)
+            lte_snmp.update(lte_data)
+            if lte_step:
+                lte_steps.append(lte_step)
+
+    # Aktualizuj a uloz historii
+    if lte_snmp:
+        lte_history = update_lte_history(lte_history, lte_snmp)
+    save_lte_history(lte_history, lte_history_path)
+
     # --- Run metadata ---
     run_end = datetime.now(timezone.utc)
     run_meta = {
@@ -975,12 +1200,14 @@ def main():
         "runner": "github-actions" if os.environ.get("GITHUB_ACTIONS") else "local",
         "trigger": os.environ.get("GITHUB_EVENT_NAME", "manual"),
         "snmp_steps": snmp_steps,
+        "lte_steps": lte_steps,
     }
 
     # --- Sestav a zapis status.json ---
     print()
     print("Sestavuji status.json...")
-    status = build_status(config, vpn_results, local_results, nvr_snmp, run_meta)
+    status = build_status(config, vpn_results, local_results, nvr_snmp, run_meta,
+                          lte_snmp=lte_snmp, lte_history=lte_history)
 
     output_path = args.output
     with open(output_path, "w") as f:

@@ -213,6 +213,29 @@ body {
 
 .snmp-ts { font-size: 0.65em; color: #334155; margin-top: 4px; }
 
+/* === LTE SIGNAL === */
+.lte-spark { cursor: pointer; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
+.lte-spark:hover { opacity: 0.8; }
+.lte-badge { font-size: 0.62em; padding: 1px 4px; border-radius: 3px; border: 1px solid #334155; white-space: nowrap; font-family: 'Courier New', monospace; }
+.lte-badge.good { color: #22c55e; border-color: #22c55e44; }
+.lte-badge.mid { color: #f59e0b; border-color: #f59e0b44; }
+.lte-badge.bad { color: #ef4444; border-color: #ef444444; }
+.lte-popup-bg { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000000aa; z-index: 300; display: flex; align-items: center; justify-content: center; }
+.lte-popup { background: #1e293b; border: 1px solid #475569; border-radius: 12px; padding: 20px; width: 440px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+.lte-popup h3 { color: #f59e0b; font-size: 0.95em; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; }
+.lte-popup .lp-close { cursor: pointer; color: #64748b; font-size: 1.4em; background: none; border: none; padding: 0 4px; line-height: 1; }
+.lte-popup .lp-close:hover { color: #e2e8f0; }
+.lte-popup .lp-desc { font-size: 0.78em; color: #64748b; margin-bottom: 16px; line-height: 1.5; }
+.lte-metric { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+.lte-metric .lm-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.lte-metric .lm-name { font-weight: 700; font-size: 0.85em; color: #e2e8f0; min-width: 40px; }
+.lte-metric .lm-val { font-family: 'Courier New', monospace; font-weight: 700; font-size: 1em; }
+.lte-metric .lm-unit { font-size: 0.72em; color: #475569; }
+.lte-metric .lm-help { cursor: help; font-size: 0.68em; color: #475569; border: 1px solid #334155; border-radius: 50%; width: 15px; height: 15px; display: inline-flex; align-items: center; justify-content: center; margin-left: auto; position: relative; }
+.lte-metric .lm-help:hover { color: #f59e0b; border-color: #f59e0b; }
+.lte-metric .lm-tip { display: none; position: absolute; bottom: 20px; right: -10px; background: #0f172a; border: 1px solid #475569; border-radius: 6px; padding: 8px 10px; min-width: 240px; font-size: 1.3em; color: #94a3b8; line-height: 1.4; z-index: 10; pointer-events: none; font-weight: 400; }
+.lte-metric .lm-help:hover .lm-tip { display: block; }
+
 /* === DEBUG PANEL === */
 /* === FORCE BUTTON === */
 /* === FORCE COLLECT BANNER === */
@@ -411,10 +434,135 @@ function groupLabel(box, prev) {
 }
 
 // ============================================================
+// LTE SIGNAL HELPERS
+// ============================================================
+const LTE_TH = {
+    rssi: {good: -65, mid: -80, unit: 'dBm', label: 'RSSI', tip: 'Celkova sila signalu. Pod -80 dBm je slaby signal.'},
+    rsrp: {good: -90, mid: -100, unit: 'dBm', label: 'RSRP', tip: 'Sila signalu ze zakladnove stanice. Pod -100 dBm = slaby prijem.'},
+    rsrq: {good: -10, mid: -15, unit: 'dB', label: 'RSRQ', tip: 'Kvalita signalu. Pod -15 dB = hodne ruseni.'},
+    sinr: {good: 10, mid: 5, unit: 'dB', label: 'SINR', tip: 'Pomer signal/sum. Pod 0 dB = sum prevysuje signal.'},
+};
+
+function lteColor(field, v) {
+    if (v == null) return '#475569';
+    const t = LTE_TH[field];
+    return v > t.good ? '#22c55e' : v > t.mid ? '#f59e0b' : '#ef4444';
+}
+function lteClass(field, v) {
+    if (v == null) return '';
+    const t = LTE_TH[field];
+    return v > t.good ? 'good' : v > t.mid ? 'mid' : 'bad';
+}
+
+function lteSvgSpark(history, field, w, h) {
+    if (!history || history.length < 2) return '';
+    const pts = [];
+    for (let i = 0; i < history.length; i++) {
+        if (history[i][field] != null) pts.push({i, v: history[i][field]});
+    }
+    if (pts.length < 2) return '';
+    const min = Math.min(...pts.map(p => p.v)) - 1;
+    const max = Math.max(...pts.map(p => p.v)) + 1;
+    const range = max - min || 1;
+    const n = history.length - 1;
+    let d = '';
+    pts.forEach((p, idx) => {
+        const x = (p.i / n) * w;
+        const y = h - ((p.v - min) / range) * (h - 2) - 1;
+        d += (idx === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1);
+    });
+    const color = lteColor(field, pts[pts.length - 1].v);
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+function lteSvgGraph(history, field, w, h) {
+    if (!history || history.length < 2) return `<div style="height:${h}px;display:flex;align-items:center;justify-content:center;color:#334155;font-size:0.75em">nedostatek dat</div>`;
+    const pts = [];
+    for (let i = 0; i < history.length; i++) {
+        if (history[i][field] != null) pts.push({i, v: history[i][field], t: history[i].t});
+    }
+    if (pts.length < 2) return `<div style="height:${h}px;display:flex;align-items:center;justify-content:center;color:#334155;font-size:0.75em">nedostatek dat</div>`;
+    const pad = {top: 4, bottom: 14, left: 32, right: 4};
+    const pw = w - pad.left - pad.right;
+    const ph = h - pad.top - pad.bottom;
+    const min = Math.min(...pts.map(p => p.v)) - 2;
+    const max = Math.max(...pts.map(p => p.v)) + 2;
+    const range = max - min || 1;
+    const n = history.length - 1;
+    // Detect gaps (>3x average interval)
+    let segments = [];
+    let seg = '';
+    let prevI = null;
+    const avgGap = n > 0 ? (new Date(history[n].t).getTime() - new Date(history[0].t).getTime()) / n : 0;
+    const gapLimit = Math.max(avgGap * 3, 3 * 3600 * 1000);
+    pts.forEach(p => {
+        const x = pad.left + (p.i / n) * pw;
+        const y = pad.top + ph - ((p.v - min) / range) * ph;
+        if (prevI != null && history[p.i] && history[prevI]) {
+            const dt = new Date(history[p.i].t).getTime() - new Date(history[prevI].t).getTime();
+            if (dt > gapLimit) { if (seg) segments.push(seg); seg = ''; }
+        }
+        seg += (seg ? 'L' : 'M') + x.toFixed(1) + ',' + y.toFixed(1);
+        prevI = p.i;
+    });
+    if (seg) segments.push(seg);
+    const color = lteColor(field, pts[pts.length - 1].v);
+    // Y axis
+    let ya = '';
+    for (let i = 0; i <= 2; i++) {
+        const v = min + (range * i / 2);
+        const y = pad.top + ph - (i / 2) * ph;
+        ya += `<text x="${pad.left - 3}" y="${y + 3}" text-anchor="end" fill="#475569" font-size="8">${Math.round(v)}</text>`;
+        ya += `<line x1="${pad.left}" x2="${w - pad.right}" y1="${y}" y2="${y}" stroke="#1e293b" stroke-width="0.5"/>`;
+    }
+    // Threshold lines
+    const th = LTE_TH[field];
+    let tl = '';
+    [th.good, th.mid].forEach(tv => {
+        if (tv > min && tv < max) {
+            const ty = pad.top + ph - ((tv - min) / range) * ph;
+            const tc = tv === th.good ? '#22c55e33' : '#f59e0b33';
+            tl += `<line x1="${pad.left}" x2="${w - pad.right}" y1="${ty}" y2="${ty}" stroke="${tc}" stroke-width="0.5" stroke-dasharray="3,3"/>`;
+        }
+    });
+    // Time axis
+    let ta = '';
+    if (pts.length > 0) {
+        const fd = new Date(pts[0].t);
+        const ld = new Date(pts[pts.length - 1].t);
+        ta += `<text x="${pad.left}" y="${h - 1}" fill="#475569" font-size="7">${fd.toLocaleDateString('cs', {day: '2-digit', month: '2-digit'})}</text>`;
+        ta += `<text x="${w - pad.right}" y="${h - 1}" text-anchor="end" fill="#475569" font-size="7">${ld.toLocaleDateString('cs', {day: '2-digit', month: '2-digit'})}</text>`;
+    }
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="display:block;background:#0f172a;border-radius:4px">${ya}${tl}${ta}${segments.map(s => `<path d="${s}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}</svg>`;
+}
+
+function renderLteSpark(box) {
+    if (!box.lte && !box.lte_history) return '';
+    const hist = box.lte_history || [];
+    const lte = box.lte;
+    if (!lte && hist.length === 0) return '';
+    const rssi = lte ? lte.rssi : (hist.length > 0 ? hist[hist.length - 1].rssi : null);
+    const key = boxKey(box);
+    if (hist.length >= 2) {
+        const svg = lteSvgSpark(hist, 'rssi', 80, 20);
+        if (svg) {
+            const cls = lteClass('rssi', rssi);
+            return `<span class="lte-spark" data-action="lte-popup" data-box="${key}" title="LTE signal — klik pro detail">${svg}<span class="lte-badge ${cls}" style="margin-top:1px">${rssi != null ? rssi : '?'}</span></span>`;
+        }
+    }
+    if (rssi != null) {
+        const cls = lteClass('rssi', rssi);
+        return `<span class="lte-badge ${cls}" data-action="lte-popup" data-box="${key}" style="cursor:pointer" title="LTE — klik pro detail">LTE ${rssi}</span>`;
+    }
+    return `<span class="lte-badge" data-action="lte-popup" data-box="${key}" style="cursor:pointer">LTE</span>`;
+}
+
+// ============================================================
 // STATE
 // ============================================================
 const openBoxes = new Set();
 let activeSort = 'ip'; // 'ip', 'nvr', 'vpn', 'typ'
+let ltePopupKey = null;
 
 function toggleBox(key) {
     if (openBoxes.has(key)) openBoxes.delete(key); else openBoxes.add(key);
@@ -529,6 +677,7 @@ function render() {
     );
 
     renderModal();
+    if (ltePopupKey && !modalData) renderLtePopup();
 }
 
 function boxKey(box) {
@@ -575,6 +724,7 @@ function renderBox(box) {
             <div class="box-lokace">${box.lokace || box.comment || '—'}</div>
         </div>
         <div class="box-right">
+            ${safeRender(() => renderLteSpark(box), 'lte-spark')}
             <div class="cam-dots">${cams.map(c => {
                 const cs = vizStav(c.expected||'run', c.status);
                 const ipBad = c.ip_mk && c.ip_snmp && c.ip_mk !== c.ip_snmp;
@@ -612,6 +762,19 @@ function renderBox(box) {
             <button class="stav-btn ${box.mk_expected==='stop'?'active-stop':''}" data-action="mk-expected" data-box="${key}" data-val="stop">NE</button>
         </span></span>`;
     h += '</div></div>';
+
+    // --- LTE signal ---
+    if (box.lte) {
+        h += '<div class="detail-section"><div class="detail-title">LTE signal</div><div class="detail-grid">';
+        for (const field of ['rssi', 'rsrp', 'rsrq', 'sinr']) {
+            const t = LTE_TH[field];
+            const v = box.lte[field];
+            h += `<span class="lbl">${t.label}</span><span class="val" style="color:${lteColor(field, v)}">${v != null ? v + ' ' + t.unit : '—'}</span>`;
+        }
+        h += '</div>';
+        if (box.lte.snmp_time) h += `<div class="snmp-ts">LTE SNMP: ${fmtTime(box.lte.snmp_time)}</div>`;
+        h += '</div>';
+    }
 
     // --- Kamery ---
     h += `<div class="detail-section">
@@ -878,6 +1041,9 @@ function handleAction(el) {
     } else if (action === 'presun') {
         modalData = { boxKey: el.dataset.box, type: 'presun' };
         render();
+    } else if (action === 'lte-popup') {
+        ltePopupKey = el.dataset.box;
+        render();
     }
 }
 
@@ -886,7 +1052,7 @@ function handleAction(el) {
 // ============================================================
 function renderModal() {
     const root = document.getElementById('modal-root');
-    if (!modalData) { root.innerHTML = ''; return; }
+    if (!modalData) { if (!ltePopupKey) root.innerHTML = ''; return; }
 
     const box = DATA.boxes.find(b => boxKey(b) === modalData.boxKey);
     if (!box) { root.innerHTML = ''; return; }
@@ -951,6 +1117,38 @@ function renderModal() {
         document.getElementById('m-static').addEventListener('click', () => { cam.ip_typ = 'static'; render(); });
         document.getElementById('m-dhcp').addEventListener('click', () => { cam.ip_typ = 'dhcp'; render(); });
     }
+}
+
+function renderLtePopup() {
+    const root = document.getElementById('modal-root');
+    if (!ltePopupKey || modalData) return;
+    const box = DATA.boxes.find(b => boxKey(b) === ltePopupKey);
+    if (!box || (!box.lte && !box.lte_history)) { ltePopupKey = null; return; }
+    const lte = box.lte || {};
+    const hist = box.lte_history || [];
+    let h = `<div class="lte-popup-bg" id="lte-popup-bg"><div class="lte-popup">
+        <h3>LTE signal — BOX ${box.num} ${box.lokace ? '(' + box.lokace + ')' : ''}<button class="lp-close" id="lte-close">&times;</button></h3>
+        <div class="lp-desc">LTE signal ovlivnuje spolehlivost VPN tunelu. Slaby signal zpusobuje vypadky a packet loss. Band, operator a poloha anteny jsou hlavni faktory.</div>`;
+    for (const field of ['rssi', 'rsrp', 'rsrq', 'sinr']) {
+        const t = LTE_TH[field];
+        const v = lte[field];
+        const color = lteColor(field, v);
+        h += `<div class="lte-metric">
+            <div class="lm-head">
+                <span class="lm-name">${t.label}</span>
+                <span class="lm-val" style="color:${color}">${v != null ? v : '—'}</span>
+                <span class="lm-unit">${t.unit}</span>
+                <span class="lm-help">?<span class="lm-tip">${t.tip}</span></span>
+            </div>
+            ${lteSvgGraph(hist, field, 396, 60)}
+        </div>`;
+    }
+    if (lte.snmp_time) h += `<div style="font-size:0.7em;color:#334155;margin-top:8px">SNMP: ${fmtTime(lte.snmp_time)}</div>`;
+    h += `</div></div>`;
+    root.innerHTML = h;
+    const closeFn = () => { ltePopupKey = null; root.innerHTML = ''; };
+    document.getElementById('lte-close').addEventListener('click', closeFn);
+    document.getElementById('lte-popup-bg').addEventListener('click', e => { if (e.target.id === 'lte-popup-bg') closeFn(); });
 }
 
 function fmtTime(iso) {
@@ -1069,6 +1267,23 @@ function renderDebugPanel() {
         h += `<div class="ds-header"><span class="ds-name">SNMP (NVR)</span></div>`;
         h += '<div class="debug-steps">';
         DATA.run.snmp_steps.forEach(s => {
+            h += `<div class="debug-step">`;
+            h += `<span class="ds-dot ${s.status}"></span>`;
+            h += `<span class="ds-step-name">${s.step}</span>`;
+            h += `<span class="ds-duration">${s.duration_s}s</span>`;
+            h += `<span class="ds-detail">${s.detail || ''}</span>`;
+            if (s.error) h += `<span class="ds-err">${s.error}</span>`;
+            h += `</div>`;
+        });
+        h += '</div></div>';
+    }
+
+    // LTE SNMP kroky
+    if (DATA.run && DATA.run.lte_steps && DATA.run.lte_steps.length > 0) {
+        h += `<div class="debug-source">`;
+        h += `<div class="ds-header"><span class="ds-name">LTE SNMP (signal)</span></div>`;
+        h += '<div class="debug-steps">';
+        DATA.run.lte_steps.forEach(s => {
             h += `<div class="debug-step">`;
             h += `<span class="ds-dot ${s.status}"></span>`;
             h += `<span class="ds-step-name">${s.step}</span>`;
