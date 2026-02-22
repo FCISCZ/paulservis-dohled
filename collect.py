@@ -445,9 +445,18 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
         print(f"  [{src_id}] MK boxy ping: {mk_alive}/{len(vpn_boxes)} zije")
         print(f"  [{src_id}] Kamery ping: {cam_alive}/{discovered} zije")
 
+    # Sestav detail — vcetne seznamu selhanych IP
+    ping_detail = f"{len(all_ping_ips)} IP v {len(batches) if all_ping_ips else 0} session (count={PING_COUNT}), MK {mk_alive}/{len(vpn_boxes)}, kam {cam_alive}/{discovered}"
+    failed_ips = [ip for ip in all_ping_ips if ping_alive.get(ip) is False]
+    none_ips = [ip for ip in all_ping_ips if ip not in ping_alive]
+    if failed_ips:
+        ping_detail += " | OFFLINE: " + ", ".join(failed_ips)
+    if none_ips:
+        ping_detail += " | bez odpovedi: " + ", ".join(none_ips)
+
     step_log(steps, "ping", t0,
-             "ok" if not ping_err else "error",
-             f"{len(all_ping_ips)} IP v {len(batches) if all_ping_ips else 0} session, MK {mk_alive}/{len(vpn_boxes)}, kam {cam_alive}/{discovered}",
+             "ok" if not ping_err and not failed_ips else "error" if ping_err else "warn",
+             ping_detail,
              ping_err)
 
     # 6. Sestav box updates
@@ -546,8 +555,17 @@ def collect_local(src_cfg, password, local_devices):
             ip_alive[ip] = parse_ping(ping_out)
 
     alive_count = sum(1 for v in ip_alive.values() if v)
-    step_log(steps, "ping_local", t0, "ok",
-             f"{alive_count}/{len(all_ips)} zije")
+    local_detail = f"{alive_count}/{len(all_ips)} zije"
+    failed_local = [ip for ip in all_ips if ip_alive.get(ip) is False]
+    none_local = [ip for ip in all_ips if ip not in ip_alive]
+    if failed_local:
+        local_detail += " | OFFLINE: " + ", ".join(failed_local)
+    if none_local:
+        local_detail += " | bez odpovedi: " + ", ".join(none_local)
+
+    step_log(steps, "ping_local", t0,
+             "ok" if not failed_local else "warn",
+             local_detail)
     print(f"  [mk_netflix] Lokalni: {alive_count}/{len(all_ips)} zije")
 
     # Sestav updates
