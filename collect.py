@@ -19,6 +19,7 @@ import sys
 import argparse
 import time
 from datetime import datetime, timezone
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 # =============================================================================
@@ -230,6 +231,32 @@ def parse_ping(output):
 
 
 # =============================================================================
+# PARALELNI PING — davkovy ping pres vice SSH session
+# =============================================================================
+
+PING_COUNT = 15
+PING_SESSIONS = 5
+
+
+def ping_batch(host, port, user, password, ips, count=PING_COUNT, timeout=90):
+    """Pingne davku IP v jedne SSH session. Vraci (dict {ip: bool/None}, error_msg)."""
+    if not ips:
+        return {}, ""
+    ping_cmds = []
+    for ip in ips:
+        ping_cmds.append(f':put ">>>{ip}<<<"; /ping {ip} count={count} interval=1')
+    out, err = ssh_multi(host, port, user, password, ping_cmds, timeout=timeout)
+    results = {}
+    if out:
+        chunks = re.split(r">>>([\d.]+)<<<", out)
+        for i in range(1, len(chunks) - 1, 2):
+            ip = chunks[i]
+            ping_out = chunks[i + 1]
+            results[ip] = parse_ping(ping_out)
+    return results, err or ""
+
+
+# =============================================================================
 # SBER DAT — VPN SERVER
 # =============================================================================
 
@@ -373,7 +400,7 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
              disc_err)
     print(f"  [{src_id}] Objeveno kamer za boxy: {discovered}")
 
-    # 5. Ping vsechno
+    # 5. Ping vsechno — paralelne (5 SSH session, count=15)
     t0 = step_start()
     all_ping_ips = []
     for box in vpn_boxes:
@@ -386,20 +413,31 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
     ping_err = ""
     mk_alive = 0
     cam_alive = 0
+    batches = []
     if all_ping_ips:
-        ping_cmds = []
-        for ip in all_ping_ips:
-            ping_cmds.append(f':put ">>>{ip}<<<"; /ping {ip} count=3 interval=1')
-        out, ping_err_raw = ssh_multi(host, port, user, password, ping_cmds,
-                             timeout=max(60, len(all_ping_ips) * 4))
-        if ping_err_raw:
-            ping_err = ping_err_raw
-        if out:
-            chunks = re.split(r">>>([\d.]+)<<<", out)
-            for i in range(1, len(chunks) - 1, 2):
-                ip = chunks[i]
-                ping_out = chunks[i + 1]
-                ping_alive[ip] = parse_ping(ping_out)
+        # Rozdeleni do davek pro paralelni SSH session
+        batch_size = max(1, (len(all_ping_ips) + PING_SESSIONS - 1) // PING_SESSIONS)
+        batches = [all_ping_ips[i:i + batch_size]
+                   for i in range(0, len(all_ping_ips), batch_size)]
+        # Timeout: count=15 * 1s interval + overhead per IP
+        batch_timeout = max(90, batch_size * 18)
+
+        print(f"  [{src_id}] Ping {len(all_ping_ips)} IP v {len(batches)} session (count={PING_COUNT})...")
+        errors = []
+        with ThreadPoolExecutor(max_workers=PING_SESSIONS) as executor:
+            futures = {
+                executor.submit(ping_batch, host, port, user, password,
+                                batch, PING_COUNT, batch_timeout): batch
+                for batch in batches
+            }
+            for future in as_completed(futures):
+                results, err = future.result()
+                ping_alive.update(results)
+                if err:
+                    errors.append(err)
+
+        if errors:
+            ping_err = "; ".join(errors)
 
         mk_alive = sum(1 for b in vpn_boxes if ping_alive.get(f"192.168.50.{int(b['num'])}"))
         cam_alive = sum(1 for ip, v in ping_alive.items() if v and not any(
@@ -409,7 +447,7 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
 
     step_log(steps, "ping", t0,
              "ok" if not ping_err else "error",
-             f"{len(all_ping_ips)} IP, MK {mk_alive}/{len(vpn_boxes)}, kam {cam_alive}/{discovered}",
+             f"{len(all_ping_ips)} IP v {len(batches) if all_ping_ips else 0} session, MK {mk_alive}/{len(vpn_boxes)}, kam {cam_alive}/{discovered}",
              ping_err)
 
     # 6. Sestav box updates
@@ -420,11 +458,13 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
         mk_ip = f"192.168.50.{int(num)}"
         ping_ok = ping_alive.get(mk_ip)
 
-        if peer and peer.get("running", False):
+        # Ping je rozhodujici — L2TP peer tabulka jen doplnkova info
+        if ping_ok is True:
             status = "online"
+        elif ping_ok is False:
+            status = "offline"
         elif peer:
-            status = "online"
-        elif ping_ok:
+            # Ping se nevykonal/nevyhodnotil, ale L2TP peer existuje (fallback)
             status = "online"
         else:
             status = "offline"
