@@ -1224,7 +1224,7 @@ function renderDebugPanel() {
 
     // Per-source breakdown
     if (DATA.collection) {
-        const srcNames = { vpn1: 'VPN1 (93.99.200.101)', vpn5: 'VPN5 (93.99.200.105)', mk_netflix: 'MK_netflix (lokalni)' };
+        const srcNames = { vpn1: 'VPN 01 (93.99.200.101)', vpn5: 'VPN 05 (93.99.200.105)', mk_netflix: 'MK_netflix (lokalni)' };
         for (const [srcId, col] of Object.entries(DATA.collection)) {
             const isErr = col.status !== 'ok';
             h += `<div class="debug-source ${isErr ? 'has-error' : ''}">`;
