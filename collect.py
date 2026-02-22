@@ -1212,8 +1212,15 @@ def main():
     lte_tasks = {}
     for src_id in ["vpn1", "vpn5"]:
         src_cfg = config["sources"][src_id]
+        _, box_upd, _, _ = vpn_results.get(src_id, (None, {}, None, []))
         lte_boxes = [b for b in config.get("vpn_boxes", [])
-                     if b["vpn"] == src_id and b.get("lte")]
+                     if b["vpn"] == src_id and b.get("lte")
+                     and box_upd.get(f"{src_id}_{b['num']}", {}).get("mk_status") != "offline"]
+        skipped = sum(1 for b in config.get("vpn_boxes", [])
+                      if b["vpn"] == src_id and b.get("lte")
+                      and box_upd.get(f"{src_id}_{b['num']}", {}).get("mk_status") == "offline")
+        if skipped:
+            print(f"  [{src_id}] LTE: preskoceno {skipped} offline boxu")
         if lte_boxes:
             lte_tasks[src_id] = (src_cfg, lte_boxes)
 
