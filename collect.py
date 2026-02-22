@@ -62,7 +62,10 @@ def ssh_cmd(host, port, user, password, command, timeout=20):
         )
         if result.returncode == 0:
             return result.stdout, None
-        return None, result.stderr.strip() or f"exit code {result.returncode}"
+        err_msg = result.stderr.strip()
+        if not err_msg and result.stdout and result.stdout.strip():
+            err_msg = f"exit code {result.returncode}, stdout: {result.stdout.strip()[:200]}"
+        return None, err_msg or f"exit code {result.returncode}"
     except subprocess.TimeoutExpired:
         return None, "timeout"
     except FileNotFoundError:
@@ -771,8 +774,9 @@ def collect_lte_snmp(vpn_id, src_cfg, password, lte_boxes):
                         break
 
     # Fallback: boxy kde jsme nenasli lte1 na 6/7 — zkusime 1-10
+    # Ale jen pokud hlavni SSH prosla (jinak je problem se spojenim, ne s ifIndex)
     missing = [b for b in lte_boxes if b["num"] not in box_ifindex]
-    if missing:
+    if missing and not err:
         cmds_fb = []
         for box in missing:
             num = box["num"]
