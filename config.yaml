@@ -57,8 +57,9 @@ nvr:
     ip: "93.99.200.100"
     local_ip: "192.168.50.51"
     vpn: vpn5
-    snmp:
-      community: "cist"
+    # snmp: NEFUNGUJE — NVR302-08EP8 nema Uniview enterprise MIB (.25506.20)
+    # SNMP demon bezi (community cist), ale vraci jen zakladni OIDy (sysUptime)
+    # Ceka na firmware update nebo MIB extension
 
   - id: nvr_chab
     name: "NVR Chabarovice"
