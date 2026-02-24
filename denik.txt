@@ -588,3 +588,174 @@ AKCE:   Pristup na VPN boxy + SNMP pro LTE signal
 STAV: SNMP zapnute, overene. Ceka na integraci do collect.py.
 
 ================================================================================
+ZAZNAM #015 - 2026-02-22
+AKCE:   Integrace LTE signalu do dashboardu
+
+  ZMENY V COLLECT.PY:
+  - Nova funkce collect_lte_snmp(vpn_id, src_cfg, password, lte_boxes)
+    → Z VPN serveru vycte /tool snmp-get pro kazdy LTE box
+    → Krok 1: zjisti ifIndex lte1 (projde ifTable 1-10, najde "lte1")
+    → Krok 2: vycte RSSI, RSRP, RSRQ, SINR s nalezenym ifIndex
+    → Vsechno v jedne SSH session per VPN server
+  - Historie: load_lte_history(), update_lte_history(), save_lte_history()
+    → lte_history.json — 7 dnu, orezava stare zaznamy
+  - Integrace do main(): po VPN sberu zavola LTE SNMP, aktualizuje historii
+  - Integrace do build_status(): box["lte"] + box["lte_history"]
+  - Step log: lte_snmp_vpn1, lte_snmp_vpn5 v run metadata
+
+  ZMENY V CONFIG.YAML:
+  - Pridano "lte: true" ke vsem 19 LTE boxum
+  - VPN1 (7): 84, 85, 86, 87, 88, 89, 94
+  - VPN5 (12): 86, 87, 88, 89, 90, 91, 92, 93, 95, 96, 97, 98
+
+  ZMENY V INDEX.HTML (dashboard):
+  - Mini sparkline SVG (80x20px) v headeru boxu — RSSI za tyden
+  - Barva podle kvality: zelena (>-65), zluta (-65 az -80), cervena (<-80)
+  - LTE detail v rozbaleni boxu: aktualni RSSI, RSRP, RSRQ, SINR s barvami
+  - Popup na klik sparkline: 4 vetsi grafy (396x60px) s:
+    - Detekce mezer v datech (preruseni cary pri >3x prumerny interval)
+    - Y osa + prahove cary (zelena/zluta hranice)
+    - Casova osa (od-do)
+    - Otaznicky s laickymi vysvetleniami u kazde hodnoty
+    - Celkovy popis vlivu LTE signalu na VPN tunel
+  - Debug panel: LTE SNMP kroky (lte_snmp_vpn1, lte_snmp_vpn5)
+  - safeRender obaleni pro odolnost
+
+  ZMENY V CI (collect.yml):
+  - git add lte_history.json vedle status.json
+
+  PUSHNUTO na GitHub.
+
+STAV: LTE monitoring nasazen. Ceka na prvni run CI pro realna data.
+
+================================================================================
+ZAZNAM #016 - 2026-02-22
+AKCE:   Prvni CI run LTE SNMP — opravy a optimalizace
+
+  PRVNI RUN (#78, starsi kod):
+  - Celkovy cas: 311s (5:11) — moc dlouho
+  - LTE SNMP VPN1: error "exit code 1" za 1.6s
+  - LTE SNMP VPN5: error "exit code 1" za 1.6s
+  - Pricina: puvodni kod posilal 70-120 SNMP prikazu v jednom SSH (scan ifDescr 1-10
+    pro kazdy box). Prekroceni maximalniho delky prikazu na MikroTik SSH.
+
+  OPRAVA 1: OPTIMALIZACE IFINDEX DISCOVERY
+  - Misto skenu indexu 1-10 (10 dotazu/box) zkusi nejdriv index 6 a 7 (kde je lte1
+    typicky). Full scan 1-10 jen jako fallback pro boxy kde se nenajde.
+  - Snizeni z ~190 na ~38 SNMP dotazu (typicky pripad).
+
+  OPRAVA 2: PARALELNI VPN1 + VPN5
+  - LTE sber pro oba VPN servery bezi soucasne (ThreadPoolExecutor, 2 workery).
+
+  OPRAVA 3: SKIP OFFLINE BOXU
+  - Boxy kde ping = offline se preskoci (zbytecne SNMP dotazy, kazdy by timeoutnul).
+  - Vyuziva vysledky pingu z predchoziho kroku.
+
+  OPRAVA 4: LEPSI ERROR REPORTING
+  - ssh_cmd: pri chybe zahrnuje i stdout (MikroTik pise chyby tam, ne do stderr)
+  - Fallback scan 1-10 se preskoci kdyz hlavni SSH selhalo (nema smysl posilat
+    jeste vic prikazu kdyz spojeni nefunguje)
+
+  DRUHY RUN (#79, novy kod):
+  - VPN5 LTE: OK — 12/12 boxu, 7.21s, vsechna data vyctena
+  - VPN1 LTE: stale error "exit code 1" za 3.79s
+    → Problem specificky pro VPN1 (CCR2004, ROS 7.13)
+    → VPN5 (RB1100AHx4, ROS 7.12.1) funguje bez problemu
+    → Dalsi run s lepsim error reportingem ukaze presnou chybu
+  - lte_history.json vytvoren, 12 zaznamu z VPN5
+  - Box 08: tentokrat online (minuly vypadek docasny)
+
+  BOX 08 ANALYZA:
+  - Run #78: offline (0/15 ping), ale L2TP peer s uptime 2d14h = tunel zije, box nereaguje
+  - Run #79: online — docasny vypadek, pravdepodobne zamrznuty bridge/CPU
+  - parse_ping: received>0 = online (staci 1/15) — pri 30% ztrate je box "online"
+
+  TODO:
+  - Zjistit proc VPN1 LTE selhava (CCR2004 specificky problem?)
+  - Az bude vic historie, overit sparkline grafy na dashboardu
+
+STAV: VPN5 LTE funkcni (12 boxu). VPN1 LTE selhava — ceka na diagnostiku.
+
+================================================================================
+ZAZNAM #017 - 2026-02-23
+AKCE:   Oprava LTE SNMP na VPN1 (CCR2004)
+
+  PRICINA SELHAVANI:
+  - /tool snmp-get na neexistujici interface index (napr. index 7 na boxu
+    kde lte1 je na indexu 6) vraci "interrupted" a ZABIJE cely zbytek
+    prikazu v SSH retezci. Exit code 1.
+  - Puvodni kod posilal index 6 a 7 pro VSECHNY boxy v JEDNE SSH session
+    (14 prikazu). Prvni neexistujici index = konec.
+  - Na VPN5 (RB1100AHx4) to fungovalo protoze tam boxy maji vice rozhrani
+    a index 7 existuje. Na VPN1 (CCR2004) ne.
+
+  OVERENO RUCNE:
+  - 1 box (2 prikazy): OK
+  - 3 boxy index 6 (3 prikazy): OK
+  - 7 boxu index 6 (7 prikazu): OK
+  - 7 boxu index 6+7 (14 prikazu): FAIL — "interrupted" po prvnim index 7
+  - 7 boxu * 4 LTE OIDy (28 prikazu, spravny index 6): OK
+
+  OPRAVA:
+  - Kazdy FAST_INDEX (6, 7) se zkusi ve VLASTNI SSH session
+  - Prvni session: vsechny boxy s index 6 → nalezene se preskoci
+  - Druha session: jen zbyvajici boxy s index 7
+  - Fallback (1-10) taky po jednom indexu
+  - Krok 2 (signal) beze zmeny — pouziva spravny index, 28 prikazu projde
+
+  VYSLEDEK CI (run #90):
+  - lte_snmp_vpn1: OK, 7/7 boxu, 3.87s
+  - lte_snmp_vpn5: OK, 12/12 boxu, 7.23s
+  - Vsech 19 LTE boxu ma data v status.json
+  - Dashboard by mel kreslit sparklines i pro VPN1
+
+  VEDLEJSI TEST — SNMP NA KAMERE (192.168.117.46):
+  - Kamera Uniview IPC6424SR-X25-VF odpovida na SNMP (community "cist")
+  - sysDescr = "IPC6424SR-X25-VF" (model)
+  - sysName, sysContact, sysLocation = prazdne
+  - Enterprise .25506.20 (NVR DevInfo) = "No Such Object"
+  - Enterprise .25506.2 = samé nuly (HW monitoring?)
+  - ZAVER: Jmeno kamery pres SNMP NELZE ziskat — sysName prazdny,
+    enterprise MIB ho neobsahuje. Pro jmena nutne HTTP API (LAPI/ISAPI).
+
+STAV: LTE monitoring PLNE FUNKCNI na obou VPN (19/19 boxu).
+
+================================================================================
+2026-02-24 — OVERENI SNMP NA NVR STAVBA (50.51)
+================================================================================
+
+  KONTEXT:
+  - Kolega hlasil ze zapnul SNMP na NVR Stavba (NVR302-08EP8)
+  - Nastaveni: SNMPv2c, community "cist", port 161
+  - Predchozi stav v CLAUDE.md: "NEFUNGUJE"
+
+  TESTOVANI:
+  1. snmpget z WSL na verejnou IP 93.99.200.100 → SNMP odpovida,
+     ale enterprise OIDy (.25506.20.x) "No Such Object"
+  2. SSH na VPN5 → ping 192.168.50.51 → OK (0.6ms, 3/3)
+  3. SSH na VPN5 → /tool snmp-get 50.51 community=cist:
+     - sysUptime (.1.3.6.1.2.1.1.3.0) → OK, timeticks 4408800 (~12h)
+     - sysDescr (.1.3.6.1.2.1.1.1.0) → PRAZDNE
+     - sysName (.1.3.6.1.2.1.1.5.0) → PRAZDNE
+     - Uniview devinfo (.25506.20.1.0) → PRAZDNE
+     - Uniview disktotal (.25506.20.2.0) → PRAZDNE
+     - Uniview diskdetail (.25506.20.3.0) → PRAZDNE
+  4. snmpwalk cele MIB → jen sysUptime, sysORTable, SNMP statistiky (.11.x)
+  5. Kontrolni test NVR Chabarovice (50.52) → Uniview OIDy funguje
+
+  ZAVER:
+  - SNMP demon BEZI, community "cist" je SPRAVNE
+  - Ale NVR302-08EP8 ma MINIMALNÍ MIB — jen SNMP framework
+  - Uniview enterprise MIB (.25506.20.x) NENI nahrana/dostupna
+  - collect.py z toho NVR disky/model/firmware NEZISKA
+  - Treba zjistit: MIB extension v nastaveni NVR, nebo verze firmware
+
+  POZNAMKA:
+  - Verejna IP 93.99.200.100 odpovida na SNMP primo (ne pres NAT/router)
+  - MK snmp-get bug: kdyz jeden dotaz selze (interrupted), zabije zbytek
+    prikazu v session → vzdy oddelene SSH pro kazdy snmp-get
+
+STAV: SNMP na NVR Stavba CASTECNE — demon bezi, ale enterprise MIB chybi.
+       Ceka na kolegu (MIB extension / firmware update).
+
+================================================================================

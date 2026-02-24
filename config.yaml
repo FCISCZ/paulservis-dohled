@@ -68,6 +68,15 @@ nvr:
     snmp:
       community: "cist"
 
+  # Lokalni — MK "MP klise rack" (192.168.224.254), ether8: NVR
+  - id: nvr_mp_klise
+    name: "NVR MP Klise"
+    ip: ""
+    local_ip: "192.168.224.50"
+    vpn: mk_netflix
+    snmp:
+      community: "cist"
+
 # === VPN BOXY (L2TP tunely pres VPN1/VPN5) ===
 # tunel = ppp_cam_XX → IP 192.168.50.XX
 vpn_boxes:
