@@ -845,3 +845,28 @@ STAV: MP Klise PLNE INTEGROVANO — NVR karta + box s 15 kamerami + tech.
 STAV: Pushnuto na GitHub, ceka na prvni CI run s expect hopem.
 
 ================================================================================
+2026-02-25 — OPRAVY DHCP SBERU PRO MK KLISE 224
+================================================================================
+
+  PROBLEM 1: DHCP TABULKA PRAZDNA (0 lease)
+  - Prvni CI run (run #115): MK Klise online, identity+uptime OK, ale 0 DHCP lease
+  - Pricina: expect vystup obsahuje ANSI escape sekvence z interaktivniho
+    terminalu MK (\x1b[...m, \r atd.) — parser nenasел tabulku v "bordelu"
+  - Oprava: strip_ansi() funkce (ESC[, title seq, charset seq, CRLF→LF)
+  - Oprava: lepsi regex pro extrakci DHCP bloku — od "Flags:" po dalsi prompt
+
+  PROBLEM 2: STAV A PRED PRAZDNE
+  - Druhy CI run: 4 lease se vyctly (IP, MAC, hostname OK), ale status
+    a last-seen prazdne
+  - Pricina: `/ip dhcp-server lease print` bez proplist neukaze sloupce
+    STATUS a LAST-SEEN (MK ma defaultni view jen ADDRESS, MAC, HOST-NAME, SERVER)
+  - Oprava: pridano proplist=address,mac-address,host-name,status,last-seen,expires-after
+  - Opraveno i pro VPN1/VPN5 (tam taky mohlo chybet)
+
+  ZMENY:
+  - collect.py: strip_ansi(), lepsi DHCP regex, proplist u obou DHCP prikazu
+  - Tri commity: puvodni feature, ANSI fix, proplist fix
+
+STAV: DHCP monitoring MK Klise 224 FUNKCNI. Ceka na overeni po dalsim CI runu.
+
+================================================================================
