@@ -327,7 +327,7 @@ def collect_vpn_server(src_cfg, password, vpn_boxes):
     # 3. DHCP leases
     t0 = step_start()
     out, err = ssh_cmd(host, port, user, password,
-                       "/ip dhcp-server lease print")
+                       "/ip dhcp-server lease print proplist=address,mac-address,host-name,status,last-seen,expires-after")
     leases = parse_dhcp_leases(out) if out else []
     normalized_leases = []
     for l in leases:
@@ -689,7 +689,7 @@ def collect_local_site(src_id, src_cfg, sources, password):
     commands = [
         "/system identity print",
         "/system resource print",
-        "/ip dhcp-server lease print",
+        "/ip dhcp-server lease print proplist=address,mac-address,host-name,status,last-seen,expires-after",
     ]
     out, err = ssh_hop_expect(
         gw_host=gw_cfg["host"], gw_port=gw_cfg["port"],
