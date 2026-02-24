@@ -851,7 +851,7 @@ function renderNVR(nvr) {
     h += `<div class="nvr-meta">
         <span><span class="nm-lbl">Boxy:</span> ${nvrBoxesOnline}/${nvrBoxes.length}</span>
         ${nvr.streams ? `<span><span class="nm-lbl">RTSP streamu:</span> <strong style="color:#f59e0b">${nvr.streams}</strong></span>` : ''}
-        <span><span class="nm-lbl">VPN:</span> ${vpnName(nvr.vpn)}</span>
+        <span><span class="nm-lbl">${nvr.vpn === 'mk_netflix' ? 'Sit:' : 'VPN:'}</span> ${nvr.vpn === 'mk_netflix' ? 'lokal ' + (nvr.local_ip || '').split('.').slice(2,3).join('') : vpnName(nvr.vpn)}</span>
     </div>`;
 
     if (nvr.snmp) {
