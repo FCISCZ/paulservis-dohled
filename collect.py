@@ -615,6 +615,142 @@ def collect_local(src_cfg, password, local_devices):
 
 
 # =============================================================================
+# SBER DAT — LOKALNI SITE (MK za gateway, pristup pres /system ssh + expect)
+# =============================================================================
+
+def ssh_hop_expect(gw_host, gw_port, gw_user, gw_password,
+                   target_ip, target_port, target_user, target_password,
+                   commands, identity_match="", timeout=30):
+    """SSH hop pres gateway MK na cilovy MK pomoci /system ssh + expect.
+    Vraci (stdout, error_msg)."""
+    # Matchovani promptu — identita cile v "] >"
+    prompt_match = f'{identity_match}] >' if identity_match else '] >'
+
+    # Sestav expect skript
+    cmd_block = ""
+    for cmd in commands:
+        cmd_block += f'send "{cmd}\\r"\n'
+        cmd_block += f'expect "{prompt_match}"\n'
+
+    expect_script = f'''set timeout {timeout}
+spawn sshpass -p "{gw_password}" ssh -p {gw_port} -tt -o StrictHostKeyChecking=no -o ConnectTimeout=10 {gw_user}@{gw_host} "/system ssh address={target_ip} port={target_port} user={target_user}"
+expect {{
+    "assword:" {{ send "{target_password}\\r" }}
+    timeout {{ puts "EXPECT_TIMEOUT_LOGIN"; exit 1 }}
+}}
+expect {{
+    "{prompt_match}" {{ }}
+    timeout {{ puts "EXPECT_TIMEOUT_PROMPT"; exit 1 }}
+}}
+{cmd_block}send "/quit\\r"
+expect eof
+'''
+    try:
+        result = subprocess.run(
+            ["expect", "-c", expect_script],
+            capture_output=True, text=True, timeout=timeout + 15
+        )
+        if result.returncode != 0:
+            err = result.stderr.strip() or result.stdout.strip()
+            if "EXPECT_TIMEOUT" in (result.stdout or ""):
+                return None, "expect timeout (login nebo prompt)"
+            return None, err or f"expect exit code {result.returncode}"
+        return result.stdout, None
+    except subprocess.TimeoutExpired:
+        return None, "timeout"
+    except FileNotFoundError:
+        return None, "expect not installed"
+    except Exception as e:
+        return None, str(e)
+
+
+def collect_local_site(src_id, src_cfg, sources, password):
+    """Sebere system info + DHCP z MK za gateway (pres /system ssh + expect).
+    Vraci (server_data, error, steps)."""
+    gw_id = src_cfg.get("gateway")
+    gw_cfg = sources.get(gw_id, {})
+    target_ip = src_cfg["target_ip"]
+    target_port = src_cfg.get("target_port", 22)
+    target_user = src_cfg.get("target_user", "monitor")
+    steps = []
+
+    print(f"  [{src_id}] Pripojuji pres {gw_id} na {target_ip}:{target_port}...")
+
+    t0 = step_start()
+    commands = [
+        "/system identity print",
+        "/system resource print",
+        "/ip dhcp-server lease print",
+    ]
+    out, err = ssh_hop_expect(
+        gw_host=gw_cfg["host"], gw_port=gw_cfg["port"],
+        gw_user=gw_cfg["user"], gw_password=password,
+        target_ip=target_ip, target_port=target_port,
+        target_user=target_user, target_password=password,
+        commands=commands, timeout=30
+    )
+    if err:
+        step_log(steps, "system_info", t0, "error",
+                 f"expect hop {gw_id}→{target_ip}", err)
+        print(f"  [{src_id}] CHYBA: {err}")
+        return None, err, steps
+
+    # Parsuj vystup — hledame vysledky prikazu v expect transkriptu
+    identity = ""
+    routeros = ""
+    uptime = ""
+    dhcp_out = ""
+
+    if out:
+        # identity
+        m = re.search(r"name:\s*(.+)", out)
+        if m:
+            identity = m.group(1).strip()
+        # resource
+        resource = parse_kv(out)
+        routeros = resource.get("version", "").split(" ")[0]
+        uptime = resource.get("uptime", "")
+        # DHCP — hledame tabulku s lease
+        dhcp_match = re.search(r"(Flags:.*?(?:#.*?ADDRESS.*?MAC.*?$.*?))", out,
+                               re.MULTILINE | re.DOTALL)
+        if dhcp_match:
+            dhcp_out = dhcp_match.group(0)
+        else:
+            # Fallback: vsechno od "Flags:" do konce
+            idx = out.find("Flags:")
+            if idx >= 0:
+                dhcp_out = out[idx:]
+
+    server = {
+        "status": "online",
+        "identity": identity,
+        "routeros": routeros,
+        "uptime": uptime,
+    }
+    step_log(steps, "system_info", t0, "ok",
+             f"{identity}, uptime {uptime}")
+    print(f"  [{src_id}] Online — {identity}, uptime {uptime}")
+
+    # DHCP
+    t0 = step_start()
+    leases = parse_dhcp_leases(dhcp_out)
+    normalized_leases = []
+    for l in leases:
+        normalized_leases.append({
+            "ip": l.get("address", ""),
+            "mac": l.get("mac_address", ""),
+            "hostname": l.get("host_name", ""),
+            "last_seen": l.get("last_seen", ""),
+            "expires": l.get("expires_after", ""),
+        })
+    server["dhcp_leases"] = normalized_leases
+    step_log(steps, "dhcp_leases", t0, "ok", f"{len(leases)} lease")
+    print(f"  [{src_id}] DHCP lease: {len(leases)}")
+
+    return server, None, steps
+
+
+# =============================================================================
 # SNMP — NVR
 # =============================================================================
 
@@ -945,7 +1081,7 @@ def save_lte_history(history, path):
 # =============================================================================
 
 def build_status(config, vpn_results, local_results, nvr_snmp, run_meta=None,
-                  lte_snmp=None, lte_history=None):
+                  lte_snmp=None, lte_history=None, local_site_results=None):
     """Sestavi status.json z konfigurace + zivych dat."""
     now = datetime.now(timezone.utc).isoformat()
 
@@ -1036,6 +1172,36 @@ def build_status(config, vpn_results, local_results, nvr_snmp, run_meta=None,
         vpn["known_ips"] = known
 
         status["vpn_servers"].append(vpn)
+
+    # --- Lokalni site (DHCP) ---
+    status["local_sites"] = []
+    if local_site_results:
+        for src_id, (server_data, error, steps) in local_site_results.items():
+            src_cfg = config["sources"][src_id]
+            site = {
+                "id": src_id,
+                "name": src_cfg.get("identity", src_id),
+                "ip": src_cfg.get("bridge_ip", "").split("/")[0],
+                "model": src_cfg.get("model", ""),
+                "status": "online" if server_data else "offline",
+                "last_check": now,
+            }
+            if server_data:
+                site["routeros"] = server_data.get("routeros", "")
+                site["uptime"] = server_data.get("uptime", "")
+                pool = src_cfg.get("dhcp_pool", "")
+                site["dhcp"] = {
+                    "pool_start": pool.split("-")[0] if "-" in pool else "",
+                    "pool_end": pool.split("-")[1] if "-" in pool else "",
+                    "leases": server_data.get("dhcp_leases", []),
+                }
+            status["collection"][src_id] = {
+                "status": "ok" if server_data else "error",
+                "error": error or "",
+                "time": now,
+                "steps": steps,
+            }
+            status["local_sites"].append(site)
 
     # --- VPN boxy ---
     all_box_updates = {}
@@ -1221,6 +1387,14 @@ def main():
     local_updates, local_err, local_steps = collect_local(mk_net_cfg, password, local_devs)
     local_results = (local_updates, local_err, local_steps)
 
+    # --- Sber lokalnich site (DHCP pres gateway hop) ---
+    local_site_results = {}
+    for src_id, src_cfg in config.get("sources", {}).items():
+        if src_cfg.get("gateway") and src_cfg.get("dhcp_pool"):
+            server_data, error, steps = collect_local_site(
+                src_id, src_cfg, config["sources"], password)
+            local_site_results[src_id] = (server_data, error, steps)
+
     # --- SNMP NVR ---
     nvr_snmp = {}
     snmp_steps = []
@@ -1286,7 +1460,8 @@ def main():
     print()
     print("Sestavuji status.json...")
     status = build_status(config, vpn_results, local_results, nvr_snmp, run_meta,
-                          lte_snmp=lte_snmp, lte_history=lte_history)
+                          lte_snmp=lte_snmp, lte_history=lte_history,
+                          local_site_results=local_site_results)
 
     output_path = args.output
     with open(output_path, "w") as f:

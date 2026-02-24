@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq sshpass snmp python3-yaml
+          sudo apt-get install -y -qq sshpass snmp python3-yaml expect
 
       - name: Sber dat
         env:

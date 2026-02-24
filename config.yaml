@@ -31,6 +31,18 @@ sources:
     identity: "MK_netflix"
     role: "jump host pro lokalni zarizeni"
 
+  mk_klise:
+    gateway: "mk_netflix"
+    target_ip: "192.168.224.254"
+    target_port: 22
+    target_user: "monitor"
+    identity: "MK Klise 224"
+    model: "RB1100AHx4"
+    bridge_ip: "192.168.224.254/24"
+    dhcp_pool: "192.168.224.110-192.168.224.160"
+    # Pristup: pres mk_netflix → /system ssh 224.254 (expect)
+    # Na 224.254 ucet "monitor" (read-only, heslo MonitorRead2026)
+
 # === NVR ===
 nvr:
   # VPN1 — ether6: NVR Paulservis, ether7: NVR FC, ether10: Walker

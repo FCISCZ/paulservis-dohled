@@ -333,7 +333,7 @@ body {
 // ============================================================
 // DATA — nacitane z status.json (generovane GitLab CI)
 // ============================================================
-let DATA = { timestamp: null, nvr: [], vpn_servers: [], boxes: [], collection: null };
+let DATA = { timestamp: null, nvr: [], vpn_servers: [], local_sites: [], boxes: [], collection: null };
 
 // ============================================================
 // DEBUG — log co stranka delala (fetch pokusy, vysledky)
@@ -671,6 +671,13 @@ function render() {
     DATA.vpn_servers.forEach(vpn => {
         h += safeRender(() => renderVPNSite(vpn), 'VPN ' + vpn.id);
     });
+
+    // Lokalni site DHCP
+    if (DATA.local_sites && DATA.local_sites.length > 0) {
+        DATA.local_sites.forEach(site => {
+            h += safeRender(() => renderLocalSiteDHCP(site), 'Site ' + site.id);
+        });
+    }
 
     // Debug panel
     h += safeRender(() => renderDebugPanel(), 'debug');
@@ -1031,6 +1038,72 @@ function renderVPNSite(vpn) {
 
         if (d.leases && d.leases.length > 0) {
             // Serad podle last_seen — kratsi cas = novejsi nahoru
+            const sortedLeases = [...d.leases].sort((a, b) => {
+                const pa = parseDuration(a.last_seen || '');
+                const pb = parseDuration(b.last_seen || '');
+                return pa - pb;
+            });
+            h += '<table class="dhcp-table"><thead><tr><th>IP</th><th>MAC</th><th>Hostname</th><th>Stav</th><th>Pred</th></tr></thead><tbody>';
+            sortedLeases.forEach((l, i) => {
+                const lip = l.ip || l.address || '?';
+                const lmac = l.mac || l.mac_address || '?';
+                const lhost = l.hostname || l.host_name || '';
+                h += `<tr class="${i === 0 ? 'newest' : ''}">`;
+                h += `<td class="ip">${lip}${i === 0 ? '<span class="dhcp-badge">NEJNOVEJSI</span>' : ''}</td>`;
+                h += `<td class="mac">${lmac}</td>`;
+                h += `<td>${lhost || '<span style="color:#334155">—</span>'}</td>`;
+                h += `<td class="ls">${l.status || '—'}</td>`;
+                h += `<td class="ls">${l.last_seen || '—'}</td>`;
+                h += '</tr>';
+            });
+            h += '</tbody></table>';
+        } else {
+            h += '<div class="dhcp-empty">Zadne aktivni DHCP lease — pool je prazdny</div>';
+        }
+        h += '</div>';
+    }
+
+    h += '</div>'; // .vpn-site
+    return h;
+}
+
+function renderLocalSiteDHCP(site) {
+    const d = site.dhcp;
+    let h = `<div class="vpn-site">`;
+
+    // Header — stejny styl jako VPN site
+    h += `<div class="vpn-site-header">
+        <span class="dot ${site.status === 'online' ? 'ok' : 'problem'}"></span>
+        <span class="vs-name">${site.name}</span>
+        <span class="vs-ip">${site.ip}</span>
+        <span class="vs-meta">${site.model} / v${site.routeros || '?'}</span>
+        ${site.uptime ? `<span class="vs-uptime">uptime ${site.uptime}</span>` : ''}
+    </div>`;
+
+    // Casovac
+    if (site.last_check) {
+        const elapsed = Math.max(0, new Date() - new Date(site.last_check)) / 60000;
+        const interval = DATA.check_interval_min || 15;
+        h += `<div class="check-bar">
+            <span class="cb-label">Posledni vycet:</span>
+            <span class="cb-time">${fmtTime(site.last_check)}</span>
+            <span class="cb-label">|</span>
+            <span class="cb-label">Stari dat:</span>
+            <span class="cb-next" style="color:${elapsed > interval * 2 ? '#ef4444' : elapsed > interval ? '#f59e0b' : '#22c55e'}">${elapsed < 1 ? '< 1 min' : Math.floor(elapsed) + ' min'}</span>
+        </div>`;
+    }
+
+    // DHCP pool detail — tabulka lease (uplne stejne jako VPN)
+    if (d) {
+        const poolSize = ipToNum(d.pool_end) - ipToNum(d.pool_start) + 1;
+        h += `<div class="dhcp-section">
+            <div class="dhcp-pool-header">
+                <span class="dp-label">DHCP Pool</span>
+                <span class="dp-range">${d.pool_start} — ${d.pool_end} (${poolSize} adres)</span>
+                <span class="dp-count">${d.leases.length} obsazeno</span>
+            </div>`;
+
+        if (d.leases && d.leases.length > 0) {
             const sortedLeases = [...d.leases].sort((a, b) => {
                 const pa = parseDuration(a.last_seen || '');
                 const pb = parseDuration(b.last_seen || '');

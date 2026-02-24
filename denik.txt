@@ -759,3 +759,89 @@ STAV: SNMP na NVR Stavba CASTECNE — demon bezi, ale enterprise MIB chybi.
        Ceka na kolegu (MIB extension / firmware update).
 
 ================================================================================
+2026-02-24 — INTEGRACE LOKACE MP KLISE RACK (192.168.224.0/24)
+================================================================================
+
+  PRUZKUM MK "MP klise rack" (192.168.224.254):
+  - RB1100AHx4, ROS 7.16.1, SSH port 22, heslo alfa2005, uptime 66 tydnu
+  - WAN: bridge1_WAN99 (192.168.99.85/24) → strecha 93.99.172.74
+  - LAN: bridge2_LAN224 (192.168.224.254/24)
+  - ether8: NVR (224.50), ether10: dohledovka (224.49)
+  - ether13: PoE switch — 15 kamer Uniview (224.51-65) + 1 WiFi AP (224.158)
+  - DHCP pool: .110-.160 (51 adres), lease 1d30m
+  - Log: jen RIP destroyed (normalni lifecycle) + NTP korekce, zadne chyby
+
+  NVR MP KLISE (192.168.224.50):
+  - Model: NVR304-16X, FW NVR-B5301.42.17.250415, SN 210235TP3E3215000001
+  - 4 disky, kazdy 9.08 TB, vsechny aktivni, celkem 36.3 TB
+  - SNMP community "cist" — PLNE FUNKCNI (vsechny 3 Uniview OIDy)
+  - Pridano do config.yaml jako nvr_mp_klise, vpn: mk_netflix
+  - Overeno: mk_netflix vidi 224.50 (ping 1.3ms, 2 hopy), SNMP projde
+
+  BOX 224.254 + KAMERY:
+  - Pridano do local_devices v config.yaml
+  - 15 kamer Uniview (MAC prefix C4:79:05), IP .51-.65, vsechny static
+  - Kamera .56 mela v ARP "failed" ale po pingu zije (staly ARP cache)
+  - 1 tech zarizeni: WiFi AP EAP235-Wall (.158), comment "wifi pro klimatizaci"
+
+  NOVA FEATURE — TECH ZARIZENI:
+  - config.yaml: volitelne pole "tech:" v boxu (vedle "cams:")
+  - collect.py: pinguje tech zarizeni stejne jako kamery
+  - index.html: tech sekce fialovou barvou pod kamerami, run/stop tlacitka
+  - boxHasProblem() pocita i tech zarizeni
+  - Ostatni boxy tech nemaji — pole se vynecha, nic se nezobrazuje
+
+  DASHBOARD OPRAVY:
+  - NVR karta: lokalni NVR ukazuje "Sit: lokal 224" (extrahuje 3. oktet z IP)
+  - DHCP tabulka: leases serazeny podle last_seen (nejnovejsi nahoru)
+  - Badge "NEJNOVEJSI" ted spravne ukazuje lease s nejkratsim casem
+  - Pridana funkce parseDuration() pro MK casove formaty (1d10m, 9h56m13s)
+
+  ZMENY NA VPN SERVERECH:
+  - VPN05: zapnuto add-arp=yes na DHCP (stejne jako VPN01)
+    → kamery dostanou po reconnectu stejnou IP
+  - VPN01 + VPN05: lease time zvyseny z 1d10m na 3d
+  - NVR Stavba: SNMP zruseno v configu (enterprise MIB chybi)
+
+  PRISTUP MK 224.254: admin/alfa2005, port 22
+  PRISTUP VPN01/VPN05 admin: admin/alfa2005, port 50022
+
+STAV: MP Klise PLNE INTEGROVANO — NVR karta + box s 15 kamerami + tech.
+       VPN01/VPN05 DHCP sjednoceno (3d lease, add-arp=yes).
+
+================================================================================
+2026-02-24 — DHCP MONITORING PRO MK KLISE 224
+================================================================================
+
+  CIL: Pridat DHCP prehled pro MK Klise 224 (192.168.224.254) na dashboard,
+       stejny styl jako VPN1/VPN5.
+
+  PRISTUP:
+  - MK 224.254 neni primo dostupny z GitHub Actions
+  - Pristup pres mk_netflix → /system ssh 224.254 (expect)
+  - Retez: GitHub Actions → SSH mk_netflix → /system ssh 224.254 → prikazy
+
+  ZMENY:
+  1. config.yaml: mk_klise source s gateway: mk_netflix, target_ip 224.254
+  2. collect.py:
+     - ssh_hop_expect() — SSH hop pres gateway MK pomoci /system ssh + expect
+     - collect_local_site() — vycte system info + DHCP pres hop
+     - build_status() — nova sekce local_sites v status.json
+  3. index.html:
+     - renderLocalSiteDHCP() — DHCP tabulka ve stejnem stylu jako VPN site
+     - DATA.local_sites pole v datovem modelu
+  4. collect.yml: pridan expect do apt-get install
+  5. MK 224.254: vytvoren ucet monitor (MonitorRead2026, group read)
+
+  OVERENO:
+  - DHCP na 224.254: pool .110-.160 (51 adres), 4 aktivni lease
+  - Monitor ucet funguje (read-only pristup k DHCP)
+  - Syntax collect.py OK, config.yaml OK
+
+  NVR STAVBA (50.51):
+  - CLAUDE.md aktualizovano: SNMP neni "nefunguje" ale "NVR ma problem"
+  - NVR302-08EP8 neni plne funkcni — SNMP demon bezi ale enterprise MIB chybi
+
+STAV: Pushnuto na GitHub, ceka na prvni CI run s expect hopem.
+
+================================================================================

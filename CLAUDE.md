@@ -39,8 +39,9 @@ GitHub Actions (cron */30 + workflow_dispatch)
 |-----|----------|------------|-----|------|
 | Paulservis | 50.253 | ? (NAT) | vpn1 | OK |
 | FC | 50.50 | 93.99.200.99 | vpn1 | OK |
-| Stavba | 50.51 | 93.99.200.100 | vpn5 | NEFUNGUJE |
+| Stavba | 50.51 | 93.99.200.100 | vpn5 | PROBLEM — NVR neni plne funkcni, SNMP jen zaklad |
 | Chabarovice | 50.52 | 93.99.200.102 | vpn5 | OK |
+| MP Klise | 192.168.224.50 | — | mk_netflix (lokal 224) | OK |
 
 ## Dashboard funkce
 - Prehled boxu (VPN + lokalni), razeni, filtry
@@ -57,7 +58,7 @@ GitHub Actions (cron */30 + workflow_dispatch)
 - GitHub cron */30 je nespolehlivy (throttling) → workflow_dispatch je okamzity
 
 ## TODO
-- Pavel: zapnout SNMP na NVR Stavba (50.51)
+- Pavel: NVR Stavba (50.51) — NVR ma problem, neni plne funkcni (SNMP jen zakladni MIB, enterprise OIDy neodpovidaji)
 - Doplnit lokace u VPN5 boxu v config.yaml
 
 ## Stav
