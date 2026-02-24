@@ -618,6 +618,15 @@ def collect_local(src_cfg, password, local_devices):
 # SBER DAT — LOKALNI SITE (MK za gateway, pristup pres /system ssh + expect)
 # =============================================================================
 
+def strip_ansi(text):
+    """Odstrani ANSI escape sekvence a terminal artefakty z expect vystupu."""
+    text = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', text)  # ESC[ sekvence
+    text = re.sub(r'\x1b\]0;[^\x07]*\x07', '', text)    # title sekvence
+    text = re.sub(r'\x1b[()][AB012]', '', text)          # charset sekvence
+    text = text.replace('\r\n', '\n').replace('\r', '\n')  # CRLF
+    return text
+
+
 def ssh_hop_expect(gw_host, gw_port, gw_user, gw_password,
                    target_ip, target_port, target_user, target_password,
                    commands, identity_match="", timeout=30):
@@ -695,13 +704,14 @@ def collect_local_site(src_id, src_cfg, sources, password):
         print(f"  [{src_id}] CHYBA: {err}")
         return None, err, steps
 
-    # Parsuj vystup — hledame vysledky prikazu v expect transkriptu
+    # Parsuj vystup — ocisti od ANSI a terminal artefaktu
     identity = ""
     routeros = ""
     uptime = ""
     dhcp_out = ""
 
     if out:
+        out = strip_ansi(out)
         # identity
         m = re.search(r"name:\s*(.+)", out)
         if m:
@@ -710,16 +720,12 @@ def collect_local_site(src_id, src_cfg, sources, password):
         resource = parse_kv(out)
         routeros = resource.get("version", "").split(" ")[0]
         uptime = resource.get("uptime", "")
-        # DHCP — hledame tabulku s lease
-        dhcp_match = re.search(r"(Flags:.*?(?:#.*?ADDRESS.*?MAC.*?$.*?))", out,
-                               re.MULTILINE | re.DOTALL)
+        # DHCP — vsechno od "Flags:" az do dalsiho promptu "] >"
+        dhcp_match = re.search(r"(Flags:.*?)(?:\[[\w@].*?\] >|$)", out,
+                               re.DOTALL)
         if dhcp_match:
-            dhcp_out = dhcp_match.group(0)
-        else:
-            # Fallback: vsechno od "Flags:" do konce
-            idx = out.find("Flags:")
-            if idx >= 0:
-                dhcp_out = out[idx:]
+            dhcp_out = dhcp_match.group(1)
+        print(f"  [debug] expect output {len(out)} chars, dhcp_out {len(dhcp_out)} chars")
 
     server = {
         "status": "online",
