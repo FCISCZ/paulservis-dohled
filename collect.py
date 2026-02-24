@@ -529,6 +529,9 @@ def collect_local(src_cfg, password, local_devices):
         for cam in dev.get("cams", []):
             if cam.get("ip"):
                 all_ips.append(cam["ip"])
+        for tech in dev.get("tech", []):
+            if tech.get("ip"):
+                all_ips.append(tech["ip"])
 
     if not all_ips:
         step_log(steps, "ping_local", step_start(), "ok", "zadne IP k pingnuti")
@@ -596,6 +599,16 @@ def collect_local(src_cfg, password, local_devices):
                 "status": "online" if alive else ("offline" if alive is False else "nevycteno"),
             })
         update["cam_statuses"] = cam_updates
+
+        tech_updates = []
+        for tech in dev.get("tech", []):
+            ip = tech.get("ip", "")
+            alive = ip_alive.get(ip)
+            tech_updates.append({
+                "ip": ip,
+                "status": "online" if alive else ("offline" if alive is False else "nevycteno"),
+            })
+        update["tech_statuses"] = tech_updates
         dev_updates[f"lok_{num}"] = update
 
     return dev_updates, None, steps
@@ -1134,6 +1147,24 @@ def build_status(config, vpn_results, local_results, nvr_snmp, run_meta=None,
                 "expected": "run",
             }
             box["cams"].append(cam)
+
+        # Tech zarizeni
+        tech_statuses = {t["ip"]: t for t in upd.get("tech_statuses", [])}
+        tech_list = []
+        for tech_cfg in dev_cfg.get("tech", []):
+            ip = tech_cfg.get("ip", "")
+            live = tech_statuses.get(ip, {})
+            tech_list.append({
+                "ip": ip,
+                "mac": tech_cfg.get("mac", ""),
+                "model": tech_cfg.get("model", ""),
+                "comment": tech_cfg.get("comment", ""),
+                "ip_typ": tech_cfg.get("ip_typ", ""),
+                "status": live.get("status", "nevycteno"),
+                "expected": "run",
+            })
+        if tech_list:
+            box["tech"] = tech_list
 
         status["boxes"].append(box)
 

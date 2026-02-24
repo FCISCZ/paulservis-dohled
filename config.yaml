@@ -543,3 +543,65 @@ local_devices:
     cams:
       - ip: "192.168.230.55"
         ip_typ: static
+
+  # MP Klise rack — centralni MK + 15 kamer + WiFi AP
+  - num: "224.254"
+    type: bridge
+    nvr: nvr_mp_klise
+    lokace: "MP Klise rack"
+    mk_ip: "192.168.224.254"
+    mk_model: "RB1100AHx4"
+    mk_routeros: "7.16.1"
+    mk_identity: "MP klise rack"
+    cams:
+      - ip: "192.168.224.51"
+        mac: "C4:79:05:72:41:06"
+        ip_typ: static
+      - ip: "192.168.224.52"
+        mac: "C4:79:05:72:41:11"
+        ip_typ: static
+      - ip: "192.168.224.53"
+        mac: "C4:79:05:72:41:15"
+        ip_typ: static
+      - ip: "192.168.224.54"
+        mac: "C4:79:05:72:40:DB"
+        ip_typ: static
+      - ip: "192.168.224.55"
+        mac: "C4:79:05:72:41:17"
+        ip_typ: static
+      - ip: "192.168.224.56"
+        mac: "C4:79:05:72:40:D0"
+        ip_typ: static
+      - ip: "192.168.224.57"
+        mac: "C4:79:05:72:40:C5"
+        ip_typ: static
+      - ip: "192.168.224.58"
+        mac: "C4:79:05:72:41:0D"
+        ip_typ: static
+      - ip: "192.168.224.59"
+        mac: "C4:79:05:72:40:FF"
+        ip_typ: static
+      - ip: "192.168.224.60"
+        mac: "C4:79:05:3D:9D:F8"
+        ip_typ: static
+      - ip: "192.168.224.61"
+        mac: "C4:79:05:72:41:0F"
+        ip_typ: static
+      - ip: "192.168.224.62"
+        mac: "C4:79:05:72:41:02"
+        ip_typ: static
+      - ip: "192.168.224.63"
+        mac: "C4:79:05:9A:14:AE"
+        ip_typ: static
+      - ip: "192.168.224.64"
+        mac: "C4:79:05:72:41:03"
+        ip_typ: static
+      - ip: "192.168.224.65"
+        mac: "C4:79:05:9A:14:AB"
+        ip_typ: static
+    tech:
+      - ip: "192.168.224.158"
+        mac: "E4:FA:C4:F3:75:3A"
+        model: "EAP235-Wall"
+        comment: "wifi pro klimatizaci"
+        ip_typ: static

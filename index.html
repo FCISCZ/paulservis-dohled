@@ -370,6 +370,9 @@ function boxHasProblem(box) {
         if (vizStav(c.expected || 'run', c.status) === 'problem') return true;
         if (c.ip_mk && c.ip_snmp && c.ip_mk !== c.ip_snmp) return true;
     }
+    for (const t of (box.tech || [])) {
+        if (vizStav(t.expected || 'run', t.status) === 'problem') return true;
+    }
     return false;
 }
 function boxHasIpWarn(box) {
@@ -810,6 +813,31 @@ function renderBox(box) {
     if (cams.length === 0) h += '<div style="font-size:0.8em;color:#475569;padding:4px">Zadna data o kamerach</div>';
     h += '</div></div>';
 
+    // --- Tech zarizeni ---
+    const techs = box.tech || [];
+    if (techs.length > 0) {
+        h += `<div class="detail-section">
+            <div class="detail-title" style="color:#8b5cf6">Tech (${techs.length})</div>
+            <div class="cam-list">`;
+        techs.forEach((t, i) => {
+            const tv = vizStav(t.expected || 'run', t.status);
+            h += `<div class="cam-row ${tv==='problem'?'has-problem':''}">
+                <span class="dot ${tv}"></span>
+                <span class="cam-idx" style="font-weight:700;font-size:0.85em;color:#8b5cf6;min-width:20px">${i+1}.</span>
+                <span class="cam-ip">${t.ip || '?'}</span>
+                <span class="cam-model">${t.model || '—'}</span>
+                ${t.comment ? `<span style="font-size:0.75em;color:#a78bfa;font-style:italic">${t.comment}</span>` : ''}
+                ${t.mac ? `<span class="cam-model" style="font-family:'Courier New',monospace;font-size:0.72em;color:#475569">${t.mac}</span>` : ''}
+                <span style="margin-left:auto;font-size:0.75em;color:${tv==='problem'?'#ef4444':tv==='ok'?'#22c55e':'#6b7280'}">${vizLabel(tv)}</span>
+                <span class="stav-sel">
+                    <button class="stav-btn ${(t.expected||'run')==='run'?'active-run':''}" data-action="tech-expected" data-box="${key}" data-tech="${i}" data-val="run">run</button>
+                    <button class="stav-btn ${t.expected==='stop'?'active-stop':''}" data-action="tech-expected" data-box="${key}" data-tech="${i}" data-val="stop">stop</button>
+                </span>
+            </div>`;
+        });
+        h += '</div></div>';
+    }
+
     // --- Lokace + historie presunu ---
     h += `<div class="detail-section">
         <div class="detail-title">Lokace</div>
@@ -1035,6 +1063,9 @@ function handleAction(el) {
     } else if (action === 'cam-expected') {
         const ci = parseInt(el.dataset.cam);
         if (box.cams && box.cams[ci]) { box.cams[ci].expected = el.dataset.val; render(); }
+    } else if (action === 'tech-expected') {
+        const ti = parseInt(el.dataset.tech);
+        if (box.tech && box.tech[ti]) { box.tech[ti].expected = el.dataset.val; render(); }
     } else if (action === 'cam-ip') {
         modalData = { boxKey: el.dataset.box, type: 'cam-ip', camIdx: parseInt(el.dataset.cam) };
         render();
