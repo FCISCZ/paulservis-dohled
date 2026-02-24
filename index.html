@@ -354,6 +354,17 @@ function logFetch(status, detail, dataAge) {
 // ============================================================
 // LOGIKA
 // ============================================================
+function parseDuration(s) {
+    if (!s) return 999999;
+    let sec = 0;
+    const w = s.match(/(\d+)w/); if (w) sec += parseInt(w[1]) * 604800;
+    const d = s.match(/(\d+)d/); if (d) sec += parseInt(d[1]) * 86400;
+    const h = s.match(/(\d+)h/); if (h) sec += parseInt(h[1]) * 3600;
+    const m = s.match(/(\d+)m/); if (m) sec += parseInt(m[1]) * 60;
+    const ss = s.match(/(\d+)s/); if (ss) sec += parseInt(ss[1]);
+    return sec || 999999;
+}
+
 function vizStav(expected, status) {
     if (expected === 'stop') return 'vypnuto';
     if (status === 'online') return 'ok';
@@ -1019,8 +1030,14 @@ function renderVPNSite(vpn) {
             </div>`;
 
         if (d.leases && d.leases.length > 0) {
+            // Serad podle last_seen — kratsi cas = novejsi nahoru
+            const sortedLeases = [...d.leases].sort((a, b) => {
+                const pa = parseDuration(a.last_seen || '');
+                const pb = parseDuration(b.last_seen || '');
+                return pa - pb;
+            });
             h += '<table class="dhcp-table"><thead><tr><th>IP</th><th>MAC</th><th>Hostname</th><th>Stav</th><th>Pred</th></tr></thead><tbody>';
-            d.leases.forEach((l, i) => {
+            sortedLeases.forEach((l, i) => {
                 const lip = l.ip || l.address || '?';
                 const lmac = l.mac || l.mac_address || '?';
                 const lhost = l.hostname || l.host_name || '';
