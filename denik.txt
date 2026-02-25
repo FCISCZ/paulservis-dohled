@@ -870,3 +870,133 @@ STAV: Pushnuto na GitHub, ceka na prvni CI run s expect hopem.
 STAV: DHCP monitoring MK Klise 224 FUNKCNI. Ceka na overeni po dalsim CI runu.
 
 ================================================================================
+2026-02-25 — AUDIT VPN5: KAMERY CHYBI V CONFIGU
+================================================================================
+
+  CIL: Zjistit kolik kamer realne bezi za VPN5 boxy a porovnat s config.yaml.
+
+  DHCP NA VPN5:
+  - Pool .150-.250, ale jen 3 DHCP lease (.179, .180, .196)
+  - Vetsina kamer ma staticke IP
+
+  METODA:
+  - Persistent SSH socket na VPN5
+  - Ping celeho DHCP segmentu .150-.250 + .110 (101 IP, count=3)
+  - Bridge host dotaz PER TUNEL (ne z velke tabulky — ta spatne prirazuje!)
+
+  VYSLEDEK — 22 ZIVYCH KAMER, ZADNA V CONFIG.YAML:
+  | Box | Kamera IP   | MAC               | Ping |
+  | 02  | .220        | 48:EA:63:CB:01:7C | 3/3  |
+  | 04  | .196, .199  | 6C:F1:7E + C4:79  | 3/3  |
+  | 07  | .249        | 48:EA:63:A6:21:B1 | 3/3  |
+  | 08  | .192        | 6C:F1:7E:D3:2E:B5 | 3/3  |
+  | 24  | .190, .191  | 6C:F1:7E          | 3/3  |
+  | 25  | .183, .184  | 88:26:3F          | 3/3  |
+  | 28  | .175        | 6C:F1:7E:7C:E1:6A | 3/3  |
+  | 86  | .179        | C4:79:05:99:FB:57 | 3/3  |
+  | 87  | .182        | C4:79:05:EF:68:88 | 3/3  |
+  | 88  | .176        | C4:79:05:84:10:C0 | 3/3  |
+  | 89  | .181        | C4:79:05:3B:60:3E | 3/3  |
+  | 90  | .187        | 6C:F1:7E:B0:26:97 | 3/3  |
+  | 91  | .197        | 6C:F1:7E:D3:2E:AE | 3/3  |
+  | 92  | .193, .180  | C4:79:05          | 3/3  |
+  | 93  | .200        | 6C:F1:7E:D3:2E:B7 | 3/3  |
+  | 95  | .195        | C4:79:05:43:6F:35 | 3/3  |
+  | 96  | .194        | 6C:F1:7E:D3:2E:B3 | 3/3  |
+  | 97  | .110        | 6C:F1:7E:B6:6B:67 | 5/5  |
+  | 98  | .198        | 6C:F1:7E:D3:2E:AF | 3/3  |
+  Vyjimky: box 04, 24, 25, 92 maji 2 kamery. Ostatni po jedne.
+
+  POZOR — CHYBA PRI PARSOVANI VELKE BRIDGE HOST TABULKY:
+  - Parsovani celeho "bridge host print" vystupu SPATNE prirazuje MAC na tunely
+  - Box 88 ma kameru pres tunnel cam_88 (stovky broadcast MAC v tabulce to maskovaly)
+  - SPRAVNA METODA: dotaz per tunel "bridge host print where on-interface=<l2tp-ppp_cam_XX>"
+
+  TODO — MUSI SE UDELAT:
+  - Doplnit vsech 22 kamer do config.yaml pod VPN5 boxy (cams: pole)
+  - Overit zda collect.py auto-discovery (bridge host + ARP) je spolehlive
+    dost na to aby kamery v configu nebyly nutne (ted je vidi ale nejsou
+    explicitne definovane)
+  - Zvazit jestli je lepsi explicitni config nebo auto-discovery
+
+STAV: Audit hotov. 22 kamer na VPN5 neni v configu. Ceka na doplneni.
+
+================================================================================
+2026-02-25 — DHCP ANALYZA + REZERVACE NA VPN5
+================================================================================
+
+  CIL: Zjistit proc 20 z 22 kamer nema DHCP lease a zajistit stabilni IP.
+
+  DHCP STAV PRED ZASAHEM:
+  - Pool: 192.168.50.150-200 (NE .150-.250 jak bylo v config.yaml!)
+  - Jen 2 aktivni DHCP lease: .196 (box 04) a .180 (box 92)
+  - 0 statickych rezervaci, 0 expired lease
+  - 20 kamer online (v ARP, ping funguje) ale BEZ lease
+  - Puvodni domnenka "kamery maji statickou IP" — NESPRAVNA
+  - Realita: kamery jsou DHCP klienti, lease vyprsela (LTE vypadky,
+    tunel spadne, kamera neobnovi vcas), kamera si IP drzi dal
+
+  ADD-ARP=YES:
+  - Na DHCP serveru bylo zapnuto add-arp=yes (z 24.2.)
+  - To pomaha jen pri NOVE prideleni IP — ne kdyz lease uz davno vyprsela
+  - Pro kamery bez lease tato ochrana NEFUNGUJE
+
+  OVERENI MAC→IP MAPOVANI (3 nezavisle zdroje):
+  1. VPN5 ARP — MAC + IP (primo z L2 komunikace)
+  2. VPN5 bridge host per tunel — ktery MAC je za kterym L2TP tunelem
+     (prikaz: /interface bridge host print where on-interface~"ppp_cam_XX")
+     Filtrovano: MAC prefix 78:9A:18/F4:1E:57 = MK boxy, zbytek = kamery
+  3. Ping z boxu na kameru + ARP na boxu — overeno na 3 boxech:
+     - Box 86: ping .179 → ARP C4:79:05:99:FB:57 ✓ (sedi s VPN5)
+     - Box 90: ping .187 → ARP 6C:F1:7E:B0:26:97 ✓
+     - Box 92: ping .193 → ARP C4:79:05:43:6F:6A ✓
+                ping .180 → ARP C4:79:05:82:D2:06 ✓
+
+  POZNATKY Z PRUZKUMU BOXU:
+  - LTE boxy (86-98): SSH port 22, admin/alfa2005, ROS 7.15.2
+  - Nizke boxy (02,04,07,08,28): SSH nefunguje na 22 ani 2222
+    (jiny HW — hEX S, nemaji SSH otevreny nebo jine heslo)
+  - Box 24: port 22 OK, box 25: port 2222 OK
+  - HW-OFFLOAD na bridge portech skryva kamery z bridge host tabulky boxu
+    → proto ARP na boxu neukazoval kamery (box s kamerou primo nekomunikuje)
+  - Torch (traffic monitor) nefunguje pres expect (interaktivni ANSI vystup)
+
+  VYTVORENE DHCP REZERVACE (23 ks):
+  | # | IP    | MAC               | Comment     |
+  |---|-------|-------------------|-------------|
+  |  0| .175  | 6C:F1:7E:7C:E1:6A| cam box28   |
+  |  1| .176  | C4:79:05:84:10:C0 | cam box88   |
+  |  2| .179  | C4:79:05:99:FB:57 | cam box86   |
+  |  3| .180  | C4:79:05:82:D2:06 | cam box92-2 |
+  |  4| .181  | C4:79:05:3B:60:3E | cam box89   |
+  |  5| .182  | C4:79:05:EF:68:88 | cam box87   |
+  |  6| .183  | 88:26:3F:27:C1:51 | cam box25-1 |
+  |  7| .184  | 88:26:3F:27:C1:50 | cam box25-2 |
+  |  8| .187  | 6C:F1:7E:B0:26:97 | cam box90   |
+  |  9| .190  | 6C:F1:7E:9A:73:91 | cam box24-1 |
+  | 10| .191  | 6C:F1:7E:9A:73:A3 | cam box24-2 |
+  | 11| .192  | 6C:F1:7E:D3:2E:B5 | cam box08   |
+  | 12| .193  | C4:79:05:43:6F:6A | cam box92-1 |
+  | 13| .194  | 6C:F1:7E:D3:2E:B3 | cam box96   |
+  | 14| .195  | C4:79:05:43:6F:35 | cam box95   |
+  | 15| .196  | 6C:F1:7E:D3:2E:B0 | cam box04-1 |
+  | 16| .197  | 6C:F1:7E:D3:2E:AE | cam box91   |
+  | 17| .198  | 6C:F1:7E:D3:2E:AF | cam box98   |
+  | 18| .199  | C4:79:05:36:53:AC | cam box04-2 |
+  | 19| .200  | 6C:F1:7E:D3:2E:B7 | cam box93   |
+  | 20| .220  | 48:EA:63:CB:01:7C | cam box02   |
+  | 21| .249  | 48:EA:63:A6:21:B1 | cam box07   |
+  | 22| .110  | 6C:F1:7E:B6:6B:67 | cam box97   |
+
+  Status vsech: "waiting" — az kamera posle DHCP request, dostane tu IP.
+  Puvodni 2 dynamicke lease (.196, .180) nahrazeny statickymi.
+
+  OPRAVA: config.yaml mel pool .150-.250, realny pool je .150-.200.
+
+  TODO:
+  - Doplnit 22 kamer do config.yaml (MAC, IP, ip_typ)
+  - Opravit dhcp_pool v config.yaml na .150-.200
+  - Overit ze po dalsim restartu/reconnectu kamer se lease stav zmeni
+    z "waiting" na "bound"
+
+STAV: DHCP rezervace hotove (23 ks). IP kamer zajisteny.

@@ -177,6 +177,7 @@ body {
 .dhcp-table tr.newest .ip { color: #38bdf8; }
 .dhcp-badge { font-size: 0.65em; background: #38bdf822; color: #38bdf8; border: 1px solid #38bdf844; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
 .dhcp-empty { font-size: 0.82em; color: #475569; padding: 8px; text-align: center; }
+.dhcp-res { display: inline-block; font-size: 0.65em; font-weight: 700; color: #fff; background: #ef4444; border-radius: 3px; padding: 0 3px; margin-left: 4px; vertical-align: middle; }
 
 /* === SORT BAR === */
 .sort-bar { display: flex; align-items: center; gap: 8px; margin: 16px 0 8px 0; }
@@ -1049,7 +1050,8 @@ function renderVPNSite(vpn) {
                 const lmac = l.mac || l.mac_address || '?';
                 const lhost = l.hostname || l.host_name || '';
                 h += `<tr class="${i === 0 ? 'newest' : ''}">`;
-                h += `<td class="ip">${lip}${i === 0 ? '<span class="dhcp-badge">NEJNOVEJSI</span>' : ''}</td>`;
+                const rBadge = l.reserved ? '<span class="dhcp-res">R</span>' : '';
+                h += `<td class="ip">${lip}${rBadge}${i === 0 ? '<span class="dhcp-badge">NEJNOVEJSI</span>' : ''}</td>`;
                 h += `<td class="mac">${lmac}</td>`;
                 h += `<td>${lhost || '<span style="color:#334155">—</span>'}</td>`;
                 h += `<td class="ls">${l.status || '—'}</td>`;
@@ -1115,7 +1117,8 @@ function renderLocalSiteDHCP(site) {
                 const lmac = l.mac || l.mac_address || '?';
                 const lhost = l.hostname || l.host_name || '';
                 h += `<tr class="${i === 0 ? 'newest' : ''}">`;
-                h += `<td class="ip">${lip}${i === 0 ? '<span class="dhcp-badge">NEJNOVEJSI</span>' : ''}</td>`;
+                const rBadge = l.reserved ? '<span class="dhcp-res">R</span>' : '';
+                h += `<td class="ip">${lip}${rBadge}${i === 0 ? '<span class="dhcp-badge">NEJNOVEJSI</span>' : ''}</td>`;
                 h += `<td class="mac">${lmac}</td>`;
                 h += `<td>${lhost || '<span style="color:#334155">—</span>'}</td>`;
                 h += `<td class="ls">${l.status || '—'}</td>`;
