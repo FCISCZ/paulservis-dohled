@@ -996,19 +996,17 @@ function renderVPNSite(vpn) {
         h += '</div></div>';
     }
 
-    // 3. DHCP aktivni lease
+    // 3. DHCP souhrn (jen pocty, bez chipu)
     if (d && d.leases && d.leases.length > 0) {
+        const boundCount = d.leases.filter(l => (l.status || '').toLowerCase() === 'bound').length;
+        const resCount = d.leases.filter(l => l.reserved).length;
+        const waitCount = d.leases.filter(l => l.reserved && (l.status || '').toLowerCase() !== 'bound').length;
+        let dhcpInfo = `${boundCount} aktivni`;
+        if (resCount > 0) dhcpInfo += `, ${resCount} rezervaci`;
+        if (waitCount > 0) dhcpInfo += ` (${waitCount} ceka)`;
         h += `<div class="ip-group">
-            <div class="ig-label">DHCP aktivni <span class="ig-count">${d.leases.length}</span></div>
-            <div class="ip-chips">`;
-        d.leases.forEach(l => {
-            const lip = l.ip || l.address || '?';
-            const lmac = l.mac || l.mac_address || '?';
-            const lhost = l.hostname || l.host_name || '?';
-            const short = lip.replace('192.168.50.', '.');
-            h += `<span class="ip-chip dhcp" title="${lmac} / ${lhost}">${short}</span>`;
-        });
-        h += '</div></div>';
+            <div class="ig-label">DHCP <span class="ig-count">${dhcpInfo}</span></div>
+        </div>`;
     }
 
     // 4. Gateway
@@ -1047,11 +1045,12 @@ function renderVPNSite(vpn) {
             h += '<table class="dhcp-table"><thead><tr><th>IP</th><th>MAC</th><th>Hostname</th><th>Stav</th><th>Pred</th></tr></thead><tbody>';
             sortedLeases.forEach((l, i) => {
                 const lip = l.ip || l.address || '?';
+                const short = lip.replace('192.168.', '');
                 const lmac = l.mac || l.mac_address || '?';
                 const lhost = l.hostname || l.host_name || '';
                 h += `<tr class="${i === 0 ? 'newest' : ''}">`;
                 const rBadge = l.reserved ? '<span class="dhcp-res">R</span>' : '';
-                h += `<td class="ip">${lip}${rBadge}${i === 0 ? '<span class="dhcp-badge">NEJNOVEJSI</span>' : ''}</td>`;
+                h += `<td class="ip">${short}${rBadge}${i === 0 ? '<span class="dhcp-badge">NEJNOVEJSI</span>' : ''}</td>`;
                 h += `<td class="mac">${lmac}</td>`;
                 h += `<td>${lhost || '<span style="color:#334155">—</span>'}</td>`;
                 h += `<td class="ls">${l.status || '—'}</td>`;
@@ -1114,11 +1113,12 @@ function renderLocalSiteDHCP(site) {
             h += '<table class="dhcp-table"><thead><tr><th>IP</th><th>MAC</th><th>Hostname</th><th>Stav</th><th>Pred</th></tr></thead><tbody>';
             sortedLeases.forEach((l, i) => {
                 const lip = l.ip || l.address || '?';
+                const short = lip.replace('192.168.', '');
                 const lmac = l.mac || l.mac_address || '?';
                 const lhost = l.hostname || l.host_name || '';
                 h += `<tr class="${i === 0 ? 'newest' : ''}">`;
                 const rBadge = l.reserved ? '<span class="dhcp-res">R</span>' : '';
-                h += `<td class="ip">${lip}${rBadge}${i === 0 ? '<span class="dhcp-badge">NEJNOVEJSI</span>' : ''}</td>`;
+                h += `<td class="ip">${short}${rBadge}${i === 0 ? '<span class="dhcp-badge">NEJNOVEJSI</span>' : ''}</td>`;
                 h += `<td class="mac">${lmac}</td>`;
                 h += `<td>${lhost || '<span style="color:#334155">—</span>'}</td>`;
                 h += `<td class="ls">${l.status || '—'}</td>`;
