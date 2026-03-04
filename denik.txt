@@ -1000,3 +1000,53 @@ STAV: Audit hotov. 22 kamer na VPN5 neni v configu. Ceka na doplneni.
     z "waiting" na "bound"
 
 STAV: DHCP rezervace hotove (23 ks). IP kamer zajisteny.
+
+================================================================================
+2026-02-25 — DASHBOARD: VIZUALIZACE DHCP REZERVACI
+================================================================================
+
+  CIL: Na dashboardu rozlisit DHCP rezervace od beznych lease, cistejsi zobrazeni.
+
+  ZMENY V COLLECT.PY:
+  - Pridan sloupec "dynamic" do DHCP proplist prikazu (3 mista:
+    collect_vpn_site VPN1, VPN5 + collect_local_site MK Klise)
+  - Pridano "DYNAMIC" do parse_dhcp_leases() — rozparsuje se automaticky
+  - Nove pole "reserved" v normalizaci lease:
+    reserved = (dynamic != "yes") → true pro staticke lease
+  - Zmena na 2 mistech: normalizace v collect_vpn_server() a collect_local_site()
+
+  ZMENY V INDEX.HTML:
+  - CSS trida .dhcp-res — cerveny badge "R" u rezervovanych IP v tabulce
+  - renderVpnSiteDHCP + renderLocalSiteDHCP: R badge u IP v DHCP tabulce
+  - Fallback: pokud status.json nema pole "reserved", badge se nezobrazi
+
+  ZMENY V CONFIG.YAML:
+  - VPN5 dhcp_pool opraven z .150-.250 na .150-.200 (skutecny stav na MK)
+
+  PRVNI VERZE — KRITICKA ZPETNA VAZBA OD FC:
+  - "DHCP aktivni" sekce s IP chipy nedavala smysl — chipy s .175, .180
+    vizualne splyvaly s chipy boxu (.02, .04...), nebylo poznat co k cemu patri
+  - "je to zmatecne a nepomaha to orientaci"
+  - Plne IP (192.168.50.xxx) v tabulce zbytecne dlouhe
+
+  OPRAVA PO ZPETNE VAZBE:
+  - DHCP chipy ODSTRANENY — nahrazeny jednoradkovym souhrnem:
+    "DHCP: X aktivni, Y rezervaci (Z ceka)"
+  - IP v DHCP tabulce zkraceny na format "50.xxx" (obe funkce)
+  - Vysledny layout IP prehledu:
+    1. Staticke (L2TP boxy) — chipy .02, .04...
+    2. NVR — chipy s nazvy
+    3. DHCP — jen textovy souhrn poctu (zadne chipy)
+    4. Gateway — chip
+    5. Pod tim DHCP Pool tabulka s detaily
+
+  ROZDILY MEZI SITE:
+  - VPN1 a VPN5: identicke (stejna funkce renderVPNSite)
+  - MK Klise: DHCP tabulka stejna (zkracene IP, R badge), ale NEMA
+    IP prehled sekci (nema L2TP boxy/NVR/gateway — je to lokalni site)
+
+  COMMITY:
+  - "DHCP: pridat pole reserved, cerveny R badge na dashboardu"
+  - "DHCP: zjednodusit IP prehled, zkratit IP v tabulce"
+
+STAV: Dashboard upraven. Rezervace zobrazeny cervenym R v tabulce.
