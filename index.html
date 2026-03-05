@@ -738,6 +738,7 @@ function renderBox(box) {
                     ? '<span class="tag tag-local">LOKALNI</span>'
                     : `<span class="tag tag-vpn">${vpnName(box.vpn)}</span>`}
                 ${box.uptime && box.uptime !== '—' ? `<span class="tag tag-uptime">${box.uptime}</span>` : ''}
+                ${box.tel ? `<span class="tag tag-uptime" title="Tel. cislo SIM">${box.tel}</span>` : ''}
                 ${v === 'problem' ? '<span class="tag tag-problem">VYPADEK</span>' : ''}
                 ${v === 'vypnuto' ? '<span class="tag tag-off">VYPNUTO</span>' : ''}
                 ${v === 'nevycteno' ? '<span class="tag tag-off" style="border-style:dashed">NEVYCTENO</span>' : ''}
@@ -778,6 +779,7 @@ function renderBox(box) {
     }
     h += `<span class="lbl">NVR</span><span class="val" style="font-family:inherit;color:#f59e0b">${nvrName(box.nvr)}</span>`;
     if (box.uptime && box.uptime !== '—') h += `<span class="lbl">Uptime</span><span class="val">${box.uptime}</span>`;
+    if (box.tel) h += `<span class="lbl">Tel</span><span class="val">${box.tel}</span>`;
     h += `<span class="lbl">Ma bezet</span>
         <span class="val"><span class="stav-sel">
             <button class="stav-btn ${box.mk_expected==='run'?'active-run':''}" data-action="mk-expected" data-box="${key}" data-val="run">ANO</button>
