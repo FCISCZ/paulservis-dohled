@@ -922,45 +922,44 @@ def collect_lte_snmp(vpn_id, src_cfg, password, lte_boxes):
                 if "lte1" in chunk:
                     box_ifindex[num] = idx
 
-    err = None
+    CHUNK = 5  # max boxu v jednom SSH batchi — aby chyba jednoho nezabila vsechny
+
     for idx in FAST_INDEXES:
         remaining = [b for b in lte_boxes if b["num"] not in box_ifindex]
         if not remaining:
             break
-        cmds = []
-        for box in remaining:
-            num = box["num"]
-            ip = f"192.168.50.{int(num)}"
-            cmds.append(f':put ">>ifidx_{num}_{idx}<<"; /tool snmp-get address={ip} community=cist oid={IF_DESCR_OID}.{idx}')
-        out, err = ssh_multi(host, port, user, password, cmds,
-                             timeout=max(60, len(remaining) * 8))
-        _parse_ifindex(out, remaining, idx)
+        for i in range(0, len(remaining), CHUNK):
+            chunk = remaining[i:i+CHUNK]
+            cmds = []
+            for box in chunk:
+                num = box["num"]
+                ip = f"192.168.50.{int(num)}"
+                cmds.append(f':put ">>ifidx_{num}_{idx}<<"; /tool snmp-get address={ip} community=cist oid={IF_DESCR_OID}.{idx}')
+            out, err = ssh_multi(host, port, user, password, cmds,
+                                 timeout=max(30, len(chunk) * 8))
+            _parse_ifindex(out, chunk, idx)
+            if err:
+                print(f"  [{vpn_id}] LTE ifIndex chunk err (idx={idx}): {err[:80]}")
 
     # Fallback: boxy kde jsme nenasli lte1 na 6/7 — zkusime 1-10 (po jednom)
     missing = [b for b in lte_boxes if b["num"] not in box_ifindex]
-    if missing and not err:
+    if missing:
         for idx in range(1, 11):
             if idx in FAST_INDEXES:
                 continue
             still_missing = [b for b in missing if b["num"] not in box_ifindex]
             if not still_missing:
                 break
-            cmds_fb = []
-            for box in still_missing:
-                num = box["num"]
-                ip = f"192.168.50.{int(num)}"
-                cmds_fb.append(f':put ">>ifidx_{num}_{idx}<<"; /tool snmp-get address={ip} community=cist oid={IF_DESCR_OID}.{idx}')
-            out_fb, _ = ssh_multi(host, port, user, password, cmds_fb,
-                                  timeout=max(60, len(still_missing) * 8))
-            _parse_ifindex(out_fb, still_missing, idx)
-
-    if err and not box_ifindex:
-        print(f"  [{vpn_id}] LTE ifIndex CHYBA: {err}")
-        s = {"step": f"lte_snmp_{vpn_id}", "status": "error",
-             "duration_s": round(time.monotonic() - t0, 2),
-             "time": datetime.now(timezone.utc).isoformat(),
-             "detail": f"{len(lte_boxes)} boxu", "error": err}
-        return {}, s
+            for i in range(0, len(still_missing), CHUNK):
+                chunk = still_missing[i:i+CHUNK]
+                cmds_fb = []
+                for box in chunk:
+                    num = box["num"]
+                    ip = f"192.168.50.{int(num)}"
+                    cmds_fb.append(f':put ">>ifidx_{num}_{idx}<<"; /tool snmp-get address={ip} community=cist oid={IF_DESCR_OID}.{idx}')
+                out_fb, _ = ssh_multi(host, port, user, password, cmds_fb,
+                                      timeout=max(30, len(chunk) * 8))
+                _parse_ifindex(out_fb, chunk, idx)
 
     if not box_ifindex:
         print(f"  [{vpn_id}] LTE: zadny box nema lte1 interface")
@@ -972,19 +971,26 @@ def collect_lte_snmp(vpn_id, src_cfg, password, lte_boxes):
 
     print(f"  [{vpn_id}] LTE ifIndex: {len(box_ifindex)}/{len(lte_boxes)} nalezeno")
 
-    # Krok 2: Vycti LTE signal
-    cmds2 = []
-    for box in lte_boxes:
-        num = box["num"]
-        idx = box_ifindex.get(num)
-        if not idx:
-            continue
-        ip = f"192.168.50.{int(num)}"
-        for name, oid in LTE_OIDS.items():
-            cmds2.append(f':put ">>lte_{num}_{name}<<"; /tool snmp-get address={ip} community=cist oid={oid}.{idx}')
-
-    out2, err2 = ssh_multi(host, port, user, password, cmds2,
-                           timeout=max(60, len(cmds2) * 3))
+    # Krok 2: Vycti LTE signal — po chunkach aby chyba jednoho nezabila vsechny
+    resolved_boxes = [b for b in lte_boxes if box_ifindex.get(b["num"])]
+    out2 = ""
+    err2 = None
+    for i in range(0, len(resolved_boxes), CHUNK):
+        chunk = resolved_boxes[i:i+CHUNK]
+        cmds2 = []
+        for box in chunk:
+            num = box["num"]
+            idx = box_ifindex[num]
+            ip = f"192.168.50.{int(num)}"
+            for name, oid in LTE_OIDS.items():
+                cmds2.append(f':put ">>lte_{num}_{name}<<"; /tool snmp-get address={ip} community=cist oid={oid}.{idx}')
+        chunk_out, chunk_err = ssh_multi(host, port, user, password, cmds2,
+                                         timeout=max(30, len(cmds2) * 3))
+        if chunk_out:
+            out2 += chunk_out + "\n"
+        if chunk_err:
+            err2 = chunk_err
+            print(f"  [{vpn_id}] LTE signal chunk err: {chunk_err[:80]}")
 
     # Parsuj signal
     results = {}
