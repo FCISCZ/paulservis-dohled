@@ -12,7 +12,7 @@ sources:
     model: "CCR2004-16G-2S+"
     bridge_ip: "192.168.50.254/24"
     dhcp_pool: "192.168.50.150-192.168.50.250"
-    walker_ip: "192.168.50.48"
+    walker_ip: "192.168.50.47"
 
   vpn5:
     host: "93.99.200.105"
@@ -45,7 +45,15 @@ sources:
 
 # === NVR ===
 nvr:
-  # VPN1 — ether6: NVR Paulservis, ether7: NVR FC, ether10: Walker
+  # VPN1 — ether5: NVR Analytika, ether6: NVR Paulservis, ether7: NVR FC, ether10: Walker
+  - id: nvr_analytika
+    name: "NVR Analytika"
+    ip: "93.99.200.103"
+    local_ip: "192.168.50.48"
+    vpn: vpn1
+    snmp:
+      community: "cist"
+
   - id: nvr_paulservis
     name: "NVR Paulservis"
     ip: ""  # verejna IP zatim nezname (NAT na 192.168.100.241 v FC siti)
@@ -69,9 +77,9 @@ nvr:
     ip: "93.99.200.100"
     local_ip: "192.168.50.51"
     vpn: vpn5
-    # snmp: NEFUNGUJE — NVR302-08EP8 nema Uniview enterprise MIB (.25506.20)
-    # SNMP demon bezi (community cist), ale vraci jen zakladni OIDy (sysUptime)
-    # Ceka na firmware update nebo MIB extension
+    snmp:
+      community: "cist"
+    # Nove NVR504-32B-IQ (nahradilo puvodni NVR302-08EP8 kde SNMP nefungovalo)
 
   - id: nvr_chab
     name: "NVR Chabarovice"

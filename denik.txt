@@ -1050,3 +1050,94 @@ STAV: DHCP rezervace hotove (23 ks). IP kamer zajisteny.
   - "DHCP: zjednodusit IP prehled, zkratit IP v tabulce"
 
 STAV: Dashboard upraven. Rezervace zobrazeny cervenym R v tabulce.
+
+================================================================================
+ZAZNAM #018 - 2026-03-05
+AKCE:   Zjisteni tel. cisel SIM ve vsech LTE boxech
+
+  METODA:
+  - SMS mezi boxy — z kazdeho boxu poslat SMS na prijimaci box (98)
+  - Prijimaci box (98): /tool sms set receive-enabled=yes port=lte1
+  - KRITICKE: /interface lte set lte1 sms-protocol=at
+    (Fibocom FG621-EA s defaultnim MBIM protokolem SMS nefunguje!)
+  - Cislo odesilatele se zobrazi v inboxu prijemce
+  - Odeslani: /tool sms send port=lte1 phone-number="+420..." message="NN"
+  - Cteni: :foreach i in=[/tool sms inbox find] do={:put ([/tool sms inbox get $i phone] . " | " . [/tool sms inbox get $i message])}
+  - Mazani: /tool sms inbox remove [find]
+
+  ZJISTENA CISLA (19/20, V5-85 offline — ceka na instalaci):
+  | Box | VPN | Tel. cislo      |
+  |-----|-----|-----------------|
+  | 83  | V1  | +420777329051   |
+  | 84  | V1  | +420770661352   |
+  | 85  | V1  | +420770661537   |
+  | 86  | V1  | +420770661458   |
+  | 87  | V1  | +420770132004   |
+  | 88  | V1  | +420774434042   |
+  | 89  | V1  | +420777920485   |
+  | 94  | V1  | +420774402518   |
+  | 86  | V5  | +420725743108   |
+  | 87  | V5  | +420770661475   |
+  | 88  | V5  | +420777170263   |
+  | 89  | V5  | +420770661526   |
+  | 90  | V5  | +420770661342   |
+  | 91  | V5  | +420776090941   |
+  | 92  | V5  | +420774498580   |
+  | 93  | V5  | +420775735423   |
+  | 95  | V5  | +420774799234   |
+  | 96  | V5  | +420774485655   |
+  | 97  | V5  | +420774419069   |
+  | 98  | V5  | +420774786735   |
+  | 85  | V5  | fiktivni 777001 |
+
+  VEDLEJSI ZMENY:
+  - Box 83 pridan do config.yaml (VPN1, LTE, chybel)
+  - Box 97 upgradovan z ROS 7.13.2 na 7.21.3 (sms-protocol=at neexistoval na 7.13)
+  - SNMP zapnuto na boxu 83 (chybelo, zpusobovalo pad LTE SNMP sberu na VPN1)
+  - Tel. cisla pridana do config.yaml (pole "tel" za "lte")
+  - collect.py: predava tel do status.json
+  - index.html: zobrazuje tel na uvodni strance i v detailu, format +420 770 661 352
+
+  ZMENA SNMP SBERU (NEDORESENO):
+  - Puvodne: vsechny boxy v jednom SSH batchi (rychle, ale chyba jednoho zabije vse)
+  - Zmeneno na: chunky po 5 boxech (cislo 5 nepodlozene, neprobrany pristup)
+  - Spravne reseni pravdepodobne: :do {} on-error={} obal na kazdy prikaz
+    ale NEOVERENO zda chyti "interrupted" (test ukazal ze ne — interrupted
+    zabije celou SSH session, ne jen prikaz)
+  - Alternativa: po jednom boxu (~0.35s/box, celkem ~4.5s na 13 boxu)
+  - VYZADUJE DALSI DISKUZI A TESTOVANI
+
+STAV: Tel. cisla kompletni (krome V5-85). Dashboard zobrazuje. SNMP chunking nedoreseny.
+
+================================================================================
+ZAZNAM #019 - 2026-03-08
+AKCE:   Pridani NVR Analytika (NVR504-32B-IQ) do monitoringu
+
+  ZMENY NA VPN1 (93.99.200.101):
+  - Walker presunut z ether5 (50.48) na ether10 (50.47)
+  - NVR Analytika na ether5, IP 192.168.50.48, MAC 88:26:3F:79:40:97
+  - Verejna IP 93.99.200.103/27 pridana na ether1
+  - NAT: dstnat .103 → 50.48, srcnat 50.48 → .103
+  - Ping z MK_netflix na .103 OK (3/3, ~7ms)
+
+  SNMP NVR Analytika:
+  - Uniview enterprise OIDy (.25506.20.1/2/3) odpovidaji
+  - Model: NVR504-32B-IQ, FW: NVR-B3615.43.30.260210, S/N: 210235UAWF3261000002
+  - 4 sloty, 2 disky osazene (2x ~7.3 GB), 2 prazdne sloty
+  - Community: cist (port 161, SNMPv2)
+
+  PRISTUPY NVR Analytika:
+  - Web/LAPI ucet: code / 2026code2026.
+  - LAPI (HTTP REST API): odpovida na http://93.99.200.103/LAPI/...
+    ale autentizace digest ani basic neprosla (StatusCode 50801)
+    — mozna vyzaduje jinou metodu, NEDORESENO
+
+  ZMENY V config.yaml:
+  - walker_ip u vpn1: 50.48 → 50.47
+  - Pridano NVR nvr_analytika (ip 93.99.200.103, local_ip 50.48, vpn1, snmp cist)
+  - Komentar u VPN1 portu aktualizovan
+
+  SMS:
+  - Z boxu 88 odeslana SMS na +420773333004 o zprovozneni NVR Analytika
+
+STAV: NVR Analytika v monitoringu, SNMP funguje, LAPI autentizace nedoresena.
