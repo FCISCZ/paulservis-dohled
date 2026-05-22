@@ -1,76 +1,76 @@
 {
-  "timestamp": "2026-05-22T18:02:30.661292+00:00",
+  "timestamp": "2026-05-22T20:05:01.445129+00:00",
   "check_interval_min": 15,
   "run": {
-    "started": "2026-05-22T17:56:26.800572+00:00",
-    "finished": "2026-05-22T18:02:30.661257+00:00",
-    "duration_s": 363.86,
+    "started": "2026-05-22T19:58:57.195146+00:00",
+    "finished": "2026-05-22T20:05:01.445102+00:00",
+    "duration_s": 364.25,
     "runner": "github-actions",
     "trigger": "schedule",
     "snmp_steps": [
       {
         "step": "snmp_nvr_analytika",
         "status": "ok",
-        "duration_s": 1.58,
-        "time": "2026-05-22T18:02:06.193525+00:00",
+        "duration_s": 1.17,
+        "time": "2026-05-22T20:04:34.806239+00:00",
         "detail": "NVR504-32B-IQ, 4 disku",
         "error": ""
       },
       {
         "step": "snmp_nvr_paulservis",
         "status": "ok",
-        "duration_s": 1.38,
-        "time": "2026-05-22T18:02:07.571536+00:00",
+        "duration_s": 1.06,
+        "time": "2026-05-22T20:04:35.862643+00:00",
         "detail": "NVR516-128, 16 disku",
         "error": ""
       },
       {
         "step": "snmp_nvr_fc",
         "status": "ok",
-        "duration_s": 1.44,
-        "time": "2026-05-22T18:02:09.006847+00:00",
+        "duration_s": 1.07,
+        "time": "2026-05-22T20:04:36.927804+00:00",
         "detail": "NVR302-32E2, 2 disku",
         "error": ""
       },
       {
         "step": "snmp_nvr_stavba",
         "status": "ok",
-        "duration_s": 1.54,
-        "time": "2026-05-22T18:02:10.545367+00:00",
+        "duration_s": 1.25,
+        "time": "2026-05-22T20:04:38.179293+00:00",
         "detail": "NVR504-32B-IQ, 4 disku",
         "error": ""
       },
       {
         "step": "snmp_nvr_chab",
         "status": "ok",
-        "duration_s": 1.49,
-        "time": "2026-05-22T18:02:12.030927+00:00",
+        "duration_s": 1.12,
+        "time": "2026-05-22T20:04:39.295798+00:00",
         "detail": "NVR304-32E2-P16, 4 disku",
         "error": ""
       },
       {
         "step": "snmp_nvr_mp_klise",
-        "status": "ok",
-        "duration_s": 4.97,
-        "time": "2026-05-22T18:02:16.999368+00:00",
-        "detail": "NVR304-16X, 4 disku",
-        "error": ""
+        "status": "error",
+        "duration_s": 11.3,
+        "time": "2026-05-22T20:04:50.591388+00:00",
+        "detail": "192.168.224.50 pres mk_netflix",
+        "error": "exit code 1, stdout: >>>devinfo<<<\ninterrupted"
       }
     ],
     "lte_steps": [
       {
         "step": "lte_snmp_vpn1",
         "status": "ok",
-        "duration_s": 8.92,
-        "time": "2026-05-22T18:02:25.925749+00:00",
+        "duration_s": 7.29,
+        "time": "2026-05-22T20:04:57.879939+00:00",
         "detail": "8/8 boxu",
         "error": ""
       },
       {
         "step": "lte_snmp_vpn5",
         "status": "ok",
-        "duration_s": 13.65,
-        "time": "2026-05-22T18:02:30.652789+00:00",
+        "duration_s": 10.84,
+        "time": "2026-05-22T20:05:01.436372+00:00",
         "detail": "13/13 boxu",
         "error": ""
       }
@@ -80,45 +80,45 @@
     "vpn1": {
       "status": "ok",
       "error": "",
-      "time": "2026-05-22T18:02:30.661292+00:00",
+      "time": "2026-05-22T20:05:01.445129+00:00",
       "steps": [
         {
           "step": "system_info",
           "status": "ok",
-          "duration_s": 1.45,
-          "time": "2026-05-22T17:56:28.249368+00:00",
-          "detail": "hotelak VPN 01, uptime 1w6d23h39m36s",
+          "duration_s": 1.1,
+          "time": "2026-05-22T19:58:58.295553+00:00",
+          "detail": "hotelak VPN 01, uptime 2w1h42m6s",
           "error": ""
         },
         {
           "step": "l2tp_peers",
           "status": "ok",
-          "duration_s": 1.37,
-          "time": "2026-05-22T17:56:29.622279+00:00",
+          "duration_s": 1.09,
+          "time": "2026-05-22T19:58:59.388871+00:00",
           "detail": "15 peeru",
           "error": ""
         },
         {
           "step": "dhcp_leases",
           "status": "ok",
-          "duration_s": 1.43,
-          "time": "2026-05-22T17:56:31.048051+00:00",
+          "duration_s": 1.05,
+          "time": "2026-05-22T19:59:00.442797+00:00",
           "detail": "2 lease",
           "error": ""
         },
         {
           "step": "discovery",
           "status": "ok",
-          "duration_s": 12.05,
-          "time": "2026-05-22T17:56:43.099950+00:00",
+          "duration_s": 11.64,
+          "time": "2026-05-22T19:59:12.078205+00:00",
           "detail": "12 kamer, 49 ARP zaznamu",
           "error": ""
         },
         {
           "step": "ping",
           "status": "warn",
-          "duration_s": 75.67,
-          "time": "2026-05-22T17:57:58.773552+00:00",
+          "duration_s": 76.44,
+          "time": "2026-05-22T20:00:28.516319+00:00",
           "detail": "25 IP v 5 session (count=15), MK 12/13, kam 12/12 | OFFLINE: 192.168.50.5",
           "error": ""
         }
@@ -127,45 +127,45 @@
     "vpn5": {
       "status": "ok",
       "error": "",
-      "time": "2026-05-22T18:02:30.661292+00:00",
+      "time": "2026-05-22T20:05:01.445129+00:00",
       "steps": [
         {
           "step": "system_info",
           "status": "ok",
-          "duration_s": 1.43,
-          "time": "2026-05-22T17:58:00.208059+00:00",
-          "detail": "hotelak VPN 02, uptime 1w6d23h40m54s",
+          "duration_s": 1.11,
+          "time": "2026-05-22T20:00:29.627757+00:00",
+          "detail": "hotelak VPN 02, uptime 2w1h43m24s",
           "error": ""
         },
         {
           "step": "l2tp_peers",
           "status": "ok",
-          "duration_s": 1.47,
-          "time": "2026-05-22T17:58:01.682188+00:00",
+          "duration_s": 1.12,
+          "time": "2026-05-22T20:00:30.746766+00:00",
           "detail": "20 peeru",
           "error": ""
         },
         {
           "step": "dhcp_leases",
           "status": "ok",
-          "duration_s": 1.55,
-          "time": "2026-05-22T17:58:03.233022+00:00",
+          "duration_s": 1.21,
+          "time": "2026-05-22T20:00:31.957519+00:00",
           "detail": "46 lease",
           "error": ""
         },
         {
           "step": "discovery",
           "status": "ok",
-          "duration_s": 4.07,
-          "time": "2026-05-22T17:58:07.306219+00:00",
+          "duration_s": 3.05,
+          "time": "2026-05-22T20:00:35.012257+00:00",
           "detail": "12 kamer, 48 ARP zaznamu",
           "error": ""
         },
         {
           "step": "ping",
           "status": "warn",
-          "duration_s": 102.92,
-          "time": "2026-05-22T17:59:50.221389+00:00",
+          "duration_s": 102.51,
+          "time": "2026-05-22T20:02:17.526950+00:00",
           "detail": "33 IP v 5 session (count=15), MK 20/21, kam 12/12 | OFFLINE: 192.168.50.85",
           "error": ""
         }
@@ -174,13 +174,13 @@
     "mk_netflix": {
       "status": "ok",
       "error": "",
-      "time": "2026-05-22T18:02:30.661292+00:00",
+      "time": "2026-05-22T20:05:01.445129+00:00",
       "steps": [
         {
           "step": "ping_local",
           "status": "warn",
-          "duration_s": 91.7,
-          "time": "2026-05-22T18:01:21.922563+00:00",
+          "duration_s": 92.73,
+          "time": "2026-05-22T20:03:50.257202+00:00",
           "detail": "43/44 zije | OFFLINE: 192.168.224.56",
           "error": ""
         }
@@ -189,21 +189,21 @@
     "mk_klise": {
       "status": "ok",
       "error": "",
-      "time": "2026-05-22T18:02:30.661292+00:00",
+      "time": "2026-05-22T20:05:01.445129+00:00",
       "steps": [
         {
           "step": "system_info",
           "status": "ok",
-          "duration_s": 42.69,
-          "time": "2026-05-22T18:02:04.615727+00:00",
-          "detail": "MP klise rack, uptime 8w2d2h38m11s",
+          "duration_s": 43.38,
+          "time": "2026-05-22T20:04:33.633685+00:00",
+          "detail": "MP klise rack, uptime 8w2d4h40m39s",
           "error": ""
         },
         {
           "step": "dhcp_leases",
           "status": "ok",
           "duration_s": 0.0,
-          "time": "2026-05-22T18:02:04.615768+00:00",
+          "time": "2026-05-22T20:04:33.633735+00:00",
           "detail": "4 lease",
           "error": ""
         }
@@ -221,7 +221,7 @@
       "status": "online",
       "streams": null,
       "snmp": {
-        "snmp_time": "2026-05-22T18:02:06.192959+00:00",
+        "snmp_time": "2026-05-22T20:04:34.805621+00:00",
         "ip": "192.168.50.48",
         "model": "NVR504-32B-IQ",
         "fw": "NVR-B3615.43.30.260210",
@@ -263,7 +263,7 @@
       "status": "online",
       "streams": null,
       "snmp": {
-        "snmp_time": "2026-05-22T18:02:07.571435+00:00",
+        "snmp_time": "2026-05-22T20:04:35.862522+00:00",
         "ip": "192.168.50.253",
         "model": "NVR516-128",
         "fw": "NVR-B5101.39.48.250408",
@@ -365,7 +365,7 @@
       "status": "online",
       "streams": null,
       "snmp": {
-        "snmp_time": "2026-05-22T18:02:09.006780+00:00",
+        "snmp_time": "2026-05-22T20:04:36.927708+00:00",
         "ip": "192.168.50.50",
         "model": "NVR302-32E2",
         "fw": "NVR-B3112.37.40.230614",
@@ -397,7 +397,7 @@
       "status": "online",
       "streams": null,
       "snmp": {
-        "snmp_time": "2026-05-22T18:02:10.545295+00:00",
+        "snmp_time": "2026-05-22T20:04:38.179200+00:00",
         "ip": "192.168.50.51",
         "model": "NVR504-32B-IQ",
         "fw": "NVR-B3615.43.30.260210",
@@ -439,7 +439,7 @@
       "status": "online",
       "streams": null,
       "snmp": {
-        "snmp_time": "2026-05-22T18:02:12.030856+00:00",
+        "snmp_time": "2026-05-22T20:04:39.295706+00:00",
         "ip": "192.168.50.52",
         "model": "NVR304-32E2-P16",
         "fw": "NVR-B3112.38.44.240305",
@@ -480,38 +480,7 @@
       "vpn": "mk_netflix",
       "status": "online",
       "streams": null,
-      "snmp": {
-        "snmp_time": "2026-05-22T18:02:16.999294+00:00",
-        "ip": "192.168.224.50",
-        "model": "NVR304-16X",
-        "fw": "NVR-B5301.42.17.250415",
-        "sn": "210235TP3E3215000001",
-        "disk_total_num": 4,
-        "capacity_tb": 36.3,
-        "disks": [
-          {
-            "id": 1,
-            "tb": 9.08,
-            "status": "aktivni"
-          },
-          {
-            "id": 2,
-            "tb": 9.08,
-            "status": "aktivni"
-          },
-          {
-            "id": 3,
-            "tb": 9.08,
-            "status": "aktivni"
-          },
-          {
-            "id": 4,
-            "tb": 9.08,
-            "status": "aktivni"
-          }
-        ]
-      },
-      "snmp_status": "vycteno"
+      "snmp_status": "nevycteno"
     }
   ],
   "vpn_servers": [
@@ -523,10 +492,10 @@
       "model": "CCR2004-16G-2S+",
       "bridge_ip": "192.168.50.254/24",
       "status": "online",
-      "last_check": "2026-05-22T18:02:30.661292+00:00",
+      "last_check": "2026-05-22T20:05:01.445129+00:00",
       "check_interval_min": 15,
       "routeros": "7.13",
-      "uptime": "1w6d23h39m36s",
+      "uptime": "2w1h42m6s",
       "identity": "hotelak VPN 01",
       "dhcp": {
         "pool_start": "192.168.50.150",
@@ -536,7 +505,7 @@
             "ip": "192.168.50.180",
             "mac": "74:4D:28:3B:A3:4E",
             "hostname": "VPN_client_1",
-            "last_seen": "1d8h54m43s",
+            "last_seen": "1d10h57m12s",
             "expires": "",
             "reserved": false
           },
@@ -544,7 +513,7 @@
             "ip": "192.168.50.189",
             "mac": "6C:F1:7E:85:F9:16",
             "hostname": "",
-            "last_seen": "1d6h27m14s",
+            "last_seen": "1d8h29m43s",
             "expires": "",
             "reserved": false
           }
@@ -586,10 +555,10 @@
       "model": "RB1100AHx4 Dude Ed.",
       "bridge_ip": "192.168.50.254/24",
       "status": "online",
-      "last_check": "2026-05-22T18:02:30.661292+00:00",
+      "last_check": "2026-05-22T20:05:01.445129+00:00",
       "check_interval_min": 15,
       "routeros": "7.12.1",
-      "uptime": "1w6d23h40m54s",
+      "uptime": "2w1h43m24s",
       "identity": "hotelak VPN 02",
       "dhcp": {
         "pool_start": "192.168.50.150",
@@ -655,8 +624,8 @@
             "ip": "192.168.50.180",
             "mac": "C4:79:05:82:D2:06",
             "hostname": "",
-            "last_seen": "16h41m38s",
-            "expires": "2d7h18m22s     no",
+            "last_seen": "18h44m7s",
+            "expires": "2d5h15m53s     no",
             "reserved": false
           },
           {
@@ -847,8 +816,8 @@
             "ip": "192.168.50.196",
             "mac": "6C:F1:7E:D3:2E:B0",
             "hostname": "",
-            "last_seen": "10h8m21s",
-            "expires": "2d13h51m39s    no",
+            "last_seen": "12h10m50s",
+            "expires": "2d11h49m10s    no",
             "reserved": false
           },
           {
@@ -996,7 +965,7 @@
       "nvr": "nvr_paulservis",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "7h19m34s",
+      "uptime": "9h22m3s",
       "client_ip": "46.135.10.1",
       "lokace": "horeni",
       "tel": "",
@@ -1050,7 +1019,7 @@
       "nvr": "nvr_paulservis",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "6d5h13m1s",
+      "uptime": "6d7h15m30s",
       "client_ip": "46.135.91.91",
       "lokace": "horeni",
       "tel": "",
@@ -1073,7 +1042,7 @@
       "nvr": "nvr_paulservis",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "4h57m9s",
+      "uptime": "6h59m38s",
       "client_ip": "46.135.92.142",
       "lokace": "tvorba SW sasa",
       "tel": "",
@@ -1096,7 +1065,7 @@
       "nvr": "nvr_paulservis",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w5d19h59m25s",
+      "uptime": "1w5d22h1m54s",
       "client_ip": "46.135.31.79",
       "lokace": "Usti, Bina",
       "tel": "",
@@ -1119,7 +1088,7 @@
       "nvr": "nvr_paulservis",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w6d23h38m21s",
+      "uptime": "2w1h40m50s",
       "client_ip": "46.135.95.133",
       "lokace": "",
       "tel": "",
@@ -1136,20 +1105,13 @@
         }
       ],
       "lte": {
-        "rssi": -54,
-        "rsrp": -82,
-        "rsrq": -13,
+        "rssi": -56,
+        "rsrp": -81,
+        "rsrq": -11,
         "sinr": 13,
-        "snmp_time": "2026-05-22T18:02:25.925749+00:00"
+        "snmp_time": "2026-05-22T20:04:57.879939+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:20.166106+00:00",
-          "rssi": -58,
-          "rsrp": -82,
-          "rsrq": -9,
-          "sinr": 12
-        },
         {
           "t": "2026-05-15T21:15:04.072914+00:00",
           "rssi": -58,
@@ -1646,6 +1608,13 @@
           "rsrp": -82,
           "rsrq": -13,
           "sinr": 13
+        },
+        {
+          "t": "2026-05-22T20:04:57.879939+00:00",
+          "rssi": -56,
+          "rsrp": -81,
+          "rsrq": -11,
+          "sinr": 13
         }
       ]
     },
@@ -1655,7 +1624,7 @@
       "nvr": "nvr_paulservis",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "4d6h41m21s",
+      "uptime": "4d8h43m50s",
       "client_ip": "46.135.27.167",
       "lokace": "",
       "tel": "+420777329051",
@@ -1672,20 +1641,13 @@
         }
       ],
       "lte": {
-        "rssi": -52,
-        "rsrp": -83,
-        "rsrq": -14,
-        "sinr": 10,
-        "snmp_time": "2026-05-22T18:02:25.925749+00:00"
+        "rssi": -54,
+        "rsrp": -81,
+        "rsrq": -12,
+        "sinr": 8,
+        "snmp_time": "2026-05-22T20:04:57.879939+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:20.166106+00:00",
-          "rssi": -53,
-          "rsrp": -77,
-          "rsrq": -9,
-          "sinr": 17
-        },
         {
           "t": "2026-05-15T21:15:04.072914+00:00",
           "rssi": -52,
@@ -2182,6 +2144,13 @@
           "rsrp": -83,
           "rsrq": -14,
           "sinr": 10
+        },
+        {
+          "t": "2026-05-22T20:04:57.879939+00:00",
+          "rssi": -54,
+          "rsrp": -81,
+          "rsrq": -12,
+          "sinr": 8
         }
       ]
     },
@@ -2191,7 +2160,7 @@
       "nvr": "nvr_paulservis",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w6d23h38m50s",
+      "uptime": "2w1h41m19s",
       "client_ip": "46.135.85.140",
       "lokace": "",
       "tel": "+420770661352",
@@ -2208,20 +2177,13 @@
         }
       ],
       "lte": {
-        "rssi": -58,
-        "rsrp": -88,
+        "rssi": -57,
+        "rsrp": -87,
         "rsrq": -10,
         "sinr": 0,
-        "snmp_time": "2026-05-22T18:02:25.925749+00:00"
+        "snmp_time": "2026-05-22T20:04:57.879939+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:20.166106+00:00",
-          "rssi": -59,
-          "rsrp": -89,
-          "rsrq": -8,
-          "sinr": 0
-        },
         {
           "t": "2026-05-15T21:15:04.072914+00:00",
           "rssi": -59,
@@ -2718,6 +2680,13 @@
           "rsrp": -88,
           "rsrq": -10,
           "sinr": 0
+        },
+        {
+          "t": "2026-05-22T20:04:57.879939+00:00",
+          "rssi": -57,
+          "rsrp": -87,
+          "rsrq": -10,
+          "sinr": 0
         }
       ]
     },
@@ -2757,7 +2726,7 @@
       "nvr": "nvr_paulservis",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1d21h54m39s",
+      "uptime": "1d23h57m8s",
       "client_ip": "46.135.84.157",
       "lokace": "",
       "tel": "+420770661458",
@@ -2774,20 +2743,13 @@
         }
       ],
       "lte": {
-        "rssi": -58,
-        "rsrp": -89,
-        "rsrq": -16,
-        "sinr": -2,
-        "snmp_time": "2026-05-22T18:02:25.925749+00:00"
+        "rssi": -57,
+        "rsrp": -93,
+        "rsrq": -19,
+        "sinr": -3,
+        "snmp_time": "2026-05-22T20:04:57.879939+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:20.166106+00:00",
-          "rssi": -57,
-          "rsrp": -89,
-          "rsrq": -17,
-          "sinr": -3
-        },
         {
           "t": "2026-05-15T21:15:04.072914+00:00",
           "rssi": -59,
@@ -3284,6 +3246,13 @@
           "rsrp": -89,
           "rsrq": -16,
           "sinr": -2
+        },
+        {
+          "t": "2026-05-22T20:04:57.879939+00:00",
+          "rssi": -57,
+          "rsrp": -93,
+          "rsrq": -19,
+          "sinr": -3
         }
       ]
     },
@@ -3293,7 +3262,7 @@
       "nvr": "nvr_paulservis",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1d21h55m46s",
+      "uptime": "1d23h58m15s",
       "client_ip": "46.135.6.214",
       "lokace": "",
       "tel": "+420770132004",
@@ -3310,20 +3279,13 @@
         }
       ],
       "lte": {
-        "rssi": -49,
+        "rssi": -52,
         "rsrp": -75,
-        "rsrq": -11,
-        "sinr": 0,
-        "snmp_time": "2026-05-22T18:02:25.925749+00:00"
+        "rsrq": -10,
+        "sinr": 6,
+        "snmp_time": "2026-05-22T20:04:57.879939+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:20.166106+00:00",
-          "rssi": -48,
-          "rsrp": -79,
-          "rsrq": -16,
-          "sinr": -5
-        },
         {
           "t": "2026-05-15T21:15:04.072914+00:00",
           "rssi": -47,
@@ -3820,6 +3782,13 @@
           "rsrp": -75,
           "rsrq": -11,
           "sinr": 0
+        },
+        {
+          "t": "2026-05-22T20:04:57.879939+00:00",
+          "rssi": -52,
+          "rsrp": -75,
+          "rsrq": -10,
+          "sinr": 6
         }
       ]
     },
@@ -3829,7 +3798,7 @@
       "nvr": "nvr_paulservis",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "2d21h19m11s",
+      "uptime": "2d23h21m40s",
       "client_ip": "46.135.11.45",
       "lokace": "",
       "tel": "+420774434042",
@@ -3846,20 +3815,13 @@
         }
       ],
       "lte": {
-        "rssi": -56,
-        "rsrp": -82,
+        "rssi": -54,
+        "rsrp": -81,
         "rsrq": -11,
-        "sinr": 13,
-        "snmp_time": "2026-05-22T18:02:25.925749+00:00"
+        "sinr": 10,
+        "snmp_time": "2026-05-22T20:04:57.879939+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:20.166106+00:00",
-          "rssi": -58,
-          "rsrp": -83,
-          "rsrq": -11,
-          "sinr": 11
-        },
         {
           "t": "2026-05-15T21:15:04.072914+00:00",
           "rssi": -52,
@@ -4356,6 +4318,13 @@
           "rsrp": -82,
           "rsrq": -11,
           "sinr": 13
+        },
+        {
+          "t": "2026-05-22T20:04:57.879939+00:00",
+          "rssi": -54,
+          "rsrp": -81,
+          "rsrq": -11,
+          "sinr": 10
         }
       ]
     },
@@ -4365,7 +4334,7 @@
       "nvr": "nvr_paulservis",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w3d19h13m49s",
+      "uptime": "1w3d21h16m18s",
       "client_ip": "46.135.88.153",
       "lokace": "",
       "tel": "+420777920485",
@@ -4382,20 +4351,13 @@
         }
       ],
       "lte": {
-        "rssi": -59,
+        "rssi": -60,
         "rsrp": -86,
         "rsrq": -10,
-        "sinr": 8,
-        "snmp_time": "2026-05-22T18:02:25.925749+00:00"
+        "sinr": 11,
+        "snmp_time": "2026-05-22T20:04:57.879939+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:20.166106+00:00",
-          "rssi": -66,
-          "rsrp": -92,
-          "rsrq": -10,
-          "sinr": 4
-        },
         {
           "t": "2026-05-15T21:15:04.072914+00:00",
           "rssi": -66,
@@ -4892,6 +4854,13 @@
           "rsrp": -86,
           "rsrq": -10,
           "sinr": 8
+        },
+        {
+          "t": "2026-05-22T20:04:57.879939+00:00",
+          "rssi": -60,
+          "rsrp": -86,
+          "rsrq": -10,
+          "sinr": 11
         }
       ]
     },
@@ -4901,7 +4870,7 @@
       "nvr": "nvr_paulservis",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w6d23h38m53s",
+      "uptime": "2w1h41m22s",
       "client_ip": "46.135.1.249",
       "lokace": "",
       "tel": "+420774402518",
@@ -4919,19 +4888,12 @@
       ],
       "lte": {
         "rssi": -48,
-        "rsrp": -75,
-        "rsrq": -12,
-        "sinr": 4,
-        "snmp_time": "2026-05-22T18:02:25.925749+00:00"
+        "rsrp": -74,
+        "rsrq": -11,
+        "sinr": 3,
+        "snmp_time": "2026-05-22T20:04:57.879939+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:20.166106+00:00",
-          "rssi": -48,
-          "rsrp": -73,
-          "rsrq": -10,
-          "sinr": 7
-        },
         {
           "t": "2026-05-15T21:15:04.072914+00:00",
           "rssi": -49,
@@ -5428,6 +5390,13 @@
           "rsrp": -75,
           "rsrq": -12,
           "sinr": 4
+        },
+        {
+          "t": "2026-05-22T20:04:57.879939+00:00",
+          "rssi": -48,
+          "rsrp": -74,
+          "rsrq": -11,
+          "sinr": 3
         }
       ]
     },
@@ -5437,7 +5406,7 @@
       "nvr": "nvr_paulservis",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d9h55m58s",
+      "uptime": "1w2d11h58m27s",
       "client_ip": "",
       "lokace": "",
       "tel": "",
@@ -5445,20 +5414,13 @@
       "historie": [],
       "cams": [],
       "lte": {
-        "rssi": -52,
-        "rsrp": -80,
-        "rsrq": -12,
-        "sinr": 6,
-        "snmp_time": "2026-05-22T18:02:30.652789+00:00"
+        "rssi": -53,
+        "rsrp": -79,
+        "rsrq": -10,
+        "sinr": 5,
+        "snmp_time": "2026-05-22T20:05:01.436372+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:24.757081+00:00",
-          "rssi": -58,
-          "rsrp": -89,
-          "rsrq": -15,
-          "sinr": 1
-        },
         {
           "t": "2026-05-15T21:15:09.971318+00:00",
           "rssi": -60,
@@ -5955,6 +5917,13 @@
           "rsrp": -80,
           "rsrq": -12,
           "sinr": 6
+        },
+        {
+          "t": "2026-05-22T20:05:01.436372+00:00",
+          "rssi": -53,
+          "rsrp": -79,
+          "rsrq": -10,
+          "sinr": 5
         }
       ]
     },
@@ -5964,7 +5933,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w6d23h40m14s",
+      "uptime": "2w1h42m43s",
       "client_ip": "",
       "lokace": "",
       "tel": "",
@@ -5978,7 +5947,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "2d3h10m35s",
+      "uptime": "2d5h13m4s",
       "client_ip": "",
       "lokace": "",
       "tel": "",
@@ -5992,7 +5961,7 @@
       "nvr": "nvr_chab",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w6d23h40m8s",
+      "uptime": "2w1h42m37s",
       "client_ip": "",
       "lokace": "",
       "tel": "",
@@ -6015,7 +5984,7 @@
       "nvr": "nvr_chab",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w3d19h15m53s",
+      "uptime": "1w3d21h18m22s",
       "client_ip": "",
       "lokace": "",
       "tel": "",
@@ -6029,7 +5998,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w6d23h39m59s",
+      "uptime": "2w1h42m28s",
       "client_ip": "",
       "lokace": "",
       "tel": "",
@@ -6052,7 +6021,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w6d23h40m2s",
+      "uptime": "2w1h42m31s",
       "client_ip": "",
       "lokace": "",
       "tel": "",
@@ -6083,7 +6052,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d11h44m30s",
+      "uptime": "1w2d13h46m59s",
       "client_ip": "",
       "lokace": "",
       "tel": "",
@@ -6106,7 +6075,7 @@
       "nvr": "nvr_chab",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "10h1m18s",
+      "uptime": "12h3m47s",
       "client_ip": "",
       "lokace": "",
       "tel": "+420725743108",
@@ -6123,20 +6092,13 @@
         }
       ],
       "lte": {
-        "rssi": -68,
+        "rssi": -67,
         "rsrp": -95,
-        "rsrq": -11,
-        "sinr": 4,
-        "snmp_time": "2026-05-22T18:02:30.652789+00:00"
+        "rsrq": -13,
+        "sinr": 7,
+        "snmp_time": "2026-05-22T20:05:01.436372+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:24.757081+00:00",
-          "rssi": -66,
-          "rsrp": -94,
-          "rsrq": -13,
-          "sinr": 7
-        },
         {
           "t": "2026-05-15T21:15:09.971318+00:00",
           "rssi": -70,
@@ -6633,6 +6595,13 @@
           "rsrp": -95,
           "rsrq": -11,
           "sinr": 4
+        },
+        {
+          "t": "2026-05-22T20:05:01.436372+00:00",
+          "rssi": -67,
+          "rsrp": -95,
+          "rsrq": -13,
+          "sinr": 7
         }
       ]
     },
@@ -6642,7 +6611,7 @@
       "nvr": "nvr_chab",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d12h54m25s",
+      "uptime": "1w2d14h56m54s",
       "client_ip": "",
       "lokace": "",
       "tel": "+420770661475",
@@ -6660,19 +6629,12 @@
       ],
       "lte": {
         "rssi": -58,
-        "rsrp": -86,
-        "rsrq": -12,
+        "rsrp": -89,
+        "rsrq": -16,
         "sinr": -1,
-        "snmp_time": "2026-05-22T18:02:30.652789+00:00"
+        "snmp_time": "2026-05-22T20:05:01.436372+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:24.757081+00:00",
-          "rssi": -57,
-          "rsrp": -86,
-          "rsrq": -13,
-          "sinr": -2
-        },
         {
           "t": "2026-05-15T21:15:09.971318+00:00",
           "rssi": -56,
@@ -7169,6 +7131,13 @@
           "rsrp": -86,
           "rsrq": -12,
           "sinr": -1
+        },
+        {
+          "t": "2026-05-22T20:05:01.436372+00:00",
+          "rssi": -58,
+          "rsrp": -89,
+          "rsrq": -16,
+          "sinr": -1
         }
       ]
     },
@@ -7178,7 +7147,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "2d1h25m55s",
+      "uptime": "2d3h28m24s",
       "client_ip": "",
       "lokace": "",
       "tel": "+420777170263",
@@ -7195,20 +7164,13 @@
         }
       ],
       "lte": {
-        "rssi": -63,
+        "rssi": -62,
         "rsrp": -94,
-        "rsrq": -15,
-        "sinr": -1,
-        "snmp_time": "2026-05-22T18:02:30.652789+00:00"
+        "rsrq": -17,
+        "sinr": 7,
+        "snmp_time": "2026-05-22T20:05:01.436372+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:24.757081+00:00",
-          "rssi": -64,
-          "rsrp": -95,
-          "rsrq": -15,
-          "sinr": 2
-        },
         {
           "t": "2026-05-15T21:15:09.971318+00:00",
           "rssi": -67,
@@ -7705,6 +7667,13 @@
           "rsrp": -94,
           "rsrq": -15,
           "sinr": -1
+        },
+        {
+          "t": "2026-05-22T20:05:01.436372+00:00",
+          "rssi": -62,
+          "rsrp": -94,
+          "rsrq": -17,
+          "sinr": 7
         }
       ]
     },
@@ -7714,7 +7683,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w3d19h5m45s",
+      "uptime": "1w3d21h8m14s",
       "client_ip": "",
       "lokace": "",
       "tel": "+420770661526",
@@ -7731,20 +7700,13 @@
         }
       ],
       "lte": {
-        "rssi": -70,
-        "rsrp": -98,
-        "rsrq": -14,
-        "sinr": 5,
-        "snmp_time": "2026-05-22T18:02:30.652789+00:00"
+        "rssi": -71,
+        "rsrp": -99,
+        "rsrq": -12,
+        "sinr": 6,
+        "snmp_time": "2026-05-22T20:05:01.436372+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:24.757081+00:00",
-          "rssi": -68,
-          "rsrp": -97,
-          "rsrq": -13,
-          "sinr": 8
-        },
         {
           "t": "2026-05-15T21:15:09.971318+00:00",
           "rssi": -71,
@@ -8241,6 +8203,13 @@
           "rsrp": -98,
           "rsrq": -14,
           "sinr": 5
+        },
+        {
+          "t": "2026-05-22T20:05:01.436372+00:00",
+          "rssi": -71,
+          "rsrp": -99,
+          "rsrq": -12,
+          "sinr": 6
         }
       ]
     },
@@ -8250,7 +8219,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w3d19h5m43s",
+      "uptime": "1w3d21h8m12s",
       "client_ip": "",
       "lokace": "",
       "tel": "+420770661342",
@@ -8258,20 +8227,13 @@
       "historie": [],
       "cams": [],
       "lte": {
-        "rssi": -68,
+        "rssi": -67,
         "rsrp": -95,
-        "rsrq": -10,
-        "sinr": 1,
-        "snmp_time": "2026-05-22T18:02:30.652789+00:00"
+        "rsrq": -11,
+        "sinr": 5,
+        "snmp_time": "2026-05-22T20:05:01.436372+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:24.757081+00:00",
-          "rssi": -63,
-          "rsrp": -93,
-          "rsrq": -15,
-          "sinr": -1
-        },
         {
           "t": "2026-05-15T21:15:09.971318+00:00",
           "rssi": -67,
@@ -8768,6 +8730,13 @@
           "rsrp": -95,
           "rsrq": -10,
           "sinr": 1
+        },
+        {
+          "t": "2026-05-22T20:05:01.436372+00:00",
+          "rssi": -67,
+          "rsrp": -95,
+          "rsrq": -11,
+          "sinr": 5
         }
       ]
     },
@@ -8777,7 +8746,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "15h31m13s",
+      "uptime": "17h33m42s",
       "client_ip": "",
       "lokace": "",
       "tel": "+420776090941",
@@ -8797,17 +8766,10 @@
         "rssi": -51,
         "rsrp": -76,
         "rsrq": -10,
-        "sinr": 11,
-        "snmp_time": "2026-05-22T18:02:30.652789+00:00"
+        "sinr": 15,
+        "snmp_time": "2026-05-22T20:05:01.436372+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:24.757081+00:00",
-          "rssi": -47,
-          "rsrp": -76,
-          "rsrq": -14,
-          "sinr": 13
-        },
         {
           "t": "2026-05-15T21:15:09.971318+00:00",
           "rssi": -47,
@@ -9304,6 +9266,13 @@
           "rsrp": -76,
           "rsrq": -10,
           "sinr": 11
+        },
+        {
+          "t": "2026-05-22T20:05:01.436372+00:00",
+          "rssi": -51,
+          "rsrp": -76,
+          "rsrq": -10,
+          "sinr": 15
         }
       ]
     },
@@ -9313,7 +9282,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w6d23h40m25s",
+      "uptime": "2w1h42m54s",
       "client_ip": "",
       "lokace": "",
       "tel": "+420774498580",
@@ -9321,20 +9290,13 @@
       "historie": [],
       "cams": [],
       "lte": {
-        "rssi": -62,
-        "rsrp": -89,
-        "rsrq": -11,
-        "sinr": 14,
-        "snmp_time": "2026-05-22T18:02:30.652789+00:00"
+        "rssi": -60,
+        "rsrp": -87,
+        "rsrq": -13,
+        "sinr": 11,
+        "snmp_time": "2026-05-22T20:05:01.436372+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:24.757081+00:00",
-          "rssi": -57,
-          "rsrp": -88,
-          "rsrq": -16,
-          "sinr": 9
-        },
         {
           "t": "2026-05-15T21:15:09.971318+00:00",
           "rssi": -64,
@@ -9831,6 +9793,13 @@
           "rsrp": -89,
           "rsrq": -11,
           "sinr": 14
+        },
+        {
+          "t": "2026-05-22T20:05:01.436372+00:00",
+          "rssi": -60,
+          "rsrp": -87,
+          "rsrq": -13,
+          "sinr": 11
         }
       ]
     },
@@ -9840,7 +9809,7 @@
       "nvr": "nvr_chab",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1d7h24m27s",
+      "uptime": "1d9h26m56s",
       "client_ip": "",
       "lokace": "",
       "tel": "+420775735423",
@@ -9857,20 +9826,13 @@
         }
       ],
       "lte": {
-        "rssi": -74,
-        "rsrp": -105,
-        "rsrq": -15,
+        "rssi": -75,
+        "rsrp": -104,
+        "rsrq": -13,
         "sinr": -1,
-        "snmp_time": "2026-05-22T18:02:30.652789+00:00"
+        "snmp_time": "2026-05-22T20:05:01.436372+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:24.757081+00:00",
-          "rssi": -76,
-          "rsrp": -104,
-          "rsrq": -13,
-          "sinr": -1
-        },
         {
           "t": "2026-05-15T21:15:09.971318+00:00",
           "rssi": -76,
@@ -10367,6 +10329,13 @@
           "rsrp": -105,
           "rsrq": -15,
           "sinr": -1
+        },
+        {
+          "t": "2026-05-22T20:05:01.436372+00:00",
+          "rssi": -75,
+          "rsrp": -104,
+          "rsrq": -13,
+          "sinr": -1
         }
       ]
     },
@@ -10376,7 +10345,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w2d8h23m55s",
+      "uptime": "1w2d10h26m24s",
       "client_ip": "",
       "lokace": "",
       "tel": "+420774799234",
@@ -10384,20 +10353,13 @@
       "historie": [],
       "cams": [],
       "lte": {
-        "rssi": -59,
-        "rsrp": -84,
-        "rsrq": -10,
-        "sinr": 16,
-        "snmp_time": "2026-05-22T18:02:30.652789+00:00"
+        "rssi": -57,
+        "rsrp": -83,
+        "rsrq": -11,
+        "sinr": 17,
+        "snmp_time": "2026-05-22T20:05:01.436372+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:24.757081+00:00",
-          "rssi": -55,
-          "rsrp": -82,
-          "rsrq": -12,
-          "sinr": 13
-        },
         {
           "t": "2026-05-15T21:15:09.971318+00:00",
           "rssi": -56,
@@ -10894,6 +10856,13 @@
           "rsrp": -84,
           "rsrq": -10,
           "sinr": 16
+        },
+        {
+          "t": "2026-05-22T20:05:01.436372+00:00",
+          "rssi": -57,
+          "rsrp": -83,
+          "rsrq": -11,
+          "sinr": 17
         }
       ]
     },
@@ -10903,7 +10872,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w3d15h28m21s",
+      "uptime": "1w3d17h30m50s",
       "client_ip": "",
       "lokace": "",
       "tel": "+420774485655",
@@ -10911,20 +10880,13 @@
       "historie": [],
       "cams": [],
       "lte": {
-        "rssi": -52,
-        "rsrp": -83,
+        "rssi": -55,
+        "rsrp": -84,
         "rsrq": -14,
         "sinr": 14,
-        "snmp_time": "2026-05-22T18:02:30.652789+00:00"
+        "snmp_time": "2026-05-22T20:05:01.436372+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:24.757081+00:00",
-          "rssi": -51,
-          "rsrp": -82,
-          "rsrq": -15,
-          "sinr": 13
-        },
         {
           "t": "2026-05-15T21:15:09.971318+00:00",
           "rssi": -57,
@@ -11421,6 +11383,13 @@
           "rsrp": -83,
           "rsrq": -14,
           "sinr": 14
+        },
+        {
+          "t": "2026-05-22T20:05:01.436372+00:00",
+          "rssi": -55,
+          "rsrp": -84,
+          "rsrq": -14,
+          "sinr": 14
         }
       ]
     },
@@ -11430,7 +11399,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "1w5h32m35s",
+      "uptime": "1w7h35m4s",
       "client_ip": "",
       "lokace": "",
       "tel": "+420774419069",
@@ -11447,20 +11416,13 @@
         }
       ],
       "lte": {
-        "rssi": -56,
-        "rsrp": -80,
+        "rssi": -54,
+        "rsrp": -79,
         "rsrq": -9,
-        "sinr": 21,
-        "snmp_time": "2026-05-22T18:02:30.652789+00:00"
+        "sinr": 19,
+        "snmp_time": "2026-05-22T20:05:01.436372+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:24.757081+00:00",
-          "rssi": -48,
-          "rsrp": -78,
-          "rsrq": -14,
-          "sinr": 16
-        },
         {
           "t": "2026-05-15T21:15:09.971318+00:00",
           "rssi": -52,
@@ -11957,6 +11919,13 @@
           "rsrp": -80,
           "rsrq": -9,
           "sinr": 21
+        },
+        {
+          "t": "2026-05-22T20:05:01.436372+00:00",
+          "rssi": -54,
+          "rsrp": -79,
+          "rsrq": -9,
+          "sinr": 19
         }
       ]
     },
@@ -11966,7 +11935,7 @@
       "nvr": "nvr_stavba",
       "mk_status": "online",
       "mk_expected": "run",
-      "uptime": "2d21h22m23s",
+      "uptime": "2d23h24m52s",
       "client_ip": "",
       "lokace": "",
       "tel": "+420774786735",
@@ -11974,20 +11943,13 @@
       "historie": [],
       "cams": [],
       "lte": {
-        "rssi": -52,
+        "rssi": -50,
         "rsrp": -80,
-        "rsrq": -12,
-        "sinr": -3,
-        "snmp_time": "2026-05-22T18:02:30.652789+00:00"
+        "rsrq": -13,
+        "sinr": -2,
+        "snmp_time": "2026-05-22T20:05:01.436372+00:00"
       },
       "lte_history": [
-        {
-          "t": "2026-05-15T19:50:24.757081+00:00",
-          "rssi": -49,
-          "rsrp": -79,
-          "rsrq": -16,
-          "sinr": -3
-        },
         {
           "t": "2026-05-15T21:15:09.971318+00:00",
           "rssi": -52,
@@ -12484,6 +12446,13 @@
           "rsrp": -80,
           "rsrq": -12,
           "sinr": -3
+        },
+        {
+          "t": "2026-05-22T20:05:01.436372+00:00",
+          "rssi": -50,
+          "rsrp": -80,
+          "rsrq": -13,
+          "sinr": -2
         }
       ]
     },
@@ -13108,9 +13077,9 @@
       "ip": "192.168.224.254",
       "model": "RB1100AHx4",
       "status": "online",
-      "last_check": "2026-05-22T18:02:30.661292+00:00",
+      "last_check": "2026-05-22T20:05:01.445129+00:00",
       "routeros": "7.16.1",
-      "uptime": "8w2d2h38m11s",
+      "uptime": "8w2d4h40m39s",
       "dhcp": {
         "pool_start": "192.168.224.110",
         "pool_end": "192.168.224.160",
