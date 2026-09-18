@@ -8,6 +8,18 @@ Monitoring Paulservis kamerovych systemu — automaticky sber dat + webovy dashb
 - Dashboard: https://fciscz.github.io/paulservis-dohled/
 - Lokalni klon: /home/fc/prace/paulservis_dohled/
 
+### GitHub token (FC)
+- **Toto repo je VEREJNE → token sem NIKDY nepsat** (GitHub by ho hned zneplatnil).
+  Token je v /home/fc/prace/CLAUDE.md (soukromy Forgejo), sekce Pristupove udaje.
+- Vytvoren 18.9.2026, **plati 90 dni → vyprsi 17.12.2026**. Pak vytvorit novy
+  (https://github.com/settings/personal-access-tokens/new) a:
+  1. zasifrovat XOR heslem "prosinec" + base64 → `GH_ENC` v index.html
+  2. dat do remote URL pro git push
+- Pouziti: git push (v remote URL), tlacitko "Vynutit sber" v dashboardu
+- Predchozi token (ghp_) vyprsel ~cerven 2026 → tlacitko Vynutit sber pul roku nefungovalo
+- POZOR: Claude Code v auto rezimu blokuje prikazy s tokenem v textu (filtr).
+  Push s tokenem musi FC spustit sam pres `! prikaz`.
+
 ## Jak to funguje
 ```
 GitHub Actions (cron */30 + workflow_dispatch)

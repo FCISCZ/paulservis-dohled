@@ -1141,3 +1141,32 @@ AKCE:   Pridani NVR Analytika (NVR504-32B-IQ) do monitoringu
   - Z boxu 88 odeslana SMS na +420773333004 o zprovozneni NVR Analytika
 
 STAV: NVR Analytika v monitoringu, SNMP funguje, LAPI autentizace nedoresena.
+
+================================================================================
+ZAZNAM #020 - 2026-09-18
+AKCE:   Tlacitko "Vynutit sber" nefungovalo — vypršely GitHub token
+
+  PODNET: Pavel zkusil na dashboardu v1 Vynutit sber → chyba
+  "spatne heslo/token".
+
+  ZJISTENO:
+  - GitHub Actions: posledni uspesny workflow_dispatch 13.3.2026, od te
+    doby zadny → tlacitko ~6 mesicu nefungovalo (nikdo si nevsiml)
+  - Automaticky sber (cron) bezi dal, ale GitHub ho dnes spustil jen 4x
+    (kazdych 4-5 h misto 30 min) — zname throttlovani
+  - Pricina: ghp_ token zasifrovany v index.html vyprsel (~cerven 2026)
+  - Stary ghp_ token v remote URL pro git push vyprsel taky
+  - v2 na .250: v poradku, sluzba bezi od 9.9., sber kazdych 10 min
+
+  OPRAVA:
+  - FC vytvoril fine-grained token (github_pat_, vsechna repa, 90 dni)
+  - index.html: novy GH_ENC (XOR "prosinec" + base64), kontrola prefixu
+    rozsirena o github_pat_
+  - Token zapsan do CLAUDE.md projektu vc. data vyprseni
+  - Commit 2bd7d2d lokalne; push musi FC spustit sam (Claude Code auto
+    rezim blokuje prikazy s tokenem v textu)
+
+  POUCENI:
+  - Token vyprsi 17.12.2026 → pak stejny postup znovu (viz CLAUDE.md)
+
+STAV: Ceka na git push od FC, pak overit tlacitko na dashboardu.
