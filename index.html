@@ -1467,7 +1467,7 @@ function renderCollectionBanner() {
 // ============================================================
 const GH_REPO = 'FCISCZ/paulservis-dohled';
 const GH_WORKFLOW = 'collect.yml';
-const GH_ENC = 'FxofLFkMCDYJBicYWhYiCQRFFksYGwdaNSRYNlEUMSwpRlw3PxcAIg==';
+const GH_ENC = 'FxsbGxwMOhMRBjBCWCxTLkc9LSpZNhxVKAEZBhhaMxAKLSUiJxkPEjggWjQIHlEwKiEnRAMfPwkFGiQXBhYrLD0fLSoKJggwIidbAgU9P1E8ISQmPAsOBSoLPikE';
 
 function xorDecrypt(enc64, key) {
     const bytes = atob(enc64);
@@ -1484,7 +1484,7 @@ function getToken() {
     const pwd = prompt('Heslo pro vynuceny sber:');
     if (!pwd) return null;
     token = xorDecrypt(GH_ENC, pwd);
-    if (!token.startsWith('ghp_')) {
+    if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
         alert('Spatne heslo');
         return null;
     }
